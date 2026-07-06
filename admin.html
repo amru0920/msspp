@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MSSPP — Kemas Kini Keputusan</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F7F5F0;--card:#fff;--line:#E5E1D8;--ink:#1B1B18;--muted:#8B8578;
+        --accent:#7A1F1F;--win:#1B6B45;--danger:#B3261E}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+  .wrap{max-width:620px;margin:0 auto;padding:18px 16px 60px}
+  h1{font-family:Archivo;font-weight:800;font-size:18px;margin:0}
+  .sub{color:var(--muted);font-size:12px;margin:2px 0 16px}
+  .login{max-width:340px;margin:60px auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+  input,select{width:100%;padding:11px 12px;margin-top:8px;background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:9px;font-size:14px;font-family:inherit}
+  button{font-family:Archivo;font-weight:700;cursor:pointer;border:none;border-radius:9px}
+  .btn{width:100%;padding:12px;margin-top:14px;background:var(--accent);color:#fff;font-size:14px}
+  .err{color:var(--danger);font-size:12px;margin-top:10px;min-height:14px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .out{background:#fff;color:var(--muted);border:1px solid var(--line);padding:7px 12px;font-size:12px}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;font-family:Archivo;font-weight:700;font-size:13px;color:var(--muted);background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .tab.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+  .mc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+  .mc.done{opacity:.72}
+  .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:10px}
+  .done-tag{color:var(--win);font-weight:600}
+  .row{display:grid;grid-template-columns:1fr 76px;gap:10px;align-items:center;margin:6px 0}
+  .row input{margin:0;text-align:center;font-family:Archivo;font-weight:800;font-size:18px}
+  .row select{margin:0}
+  .name{font-weight:600;font-size:14px}
+  .foot{display:flex;gap:8px;margin-top:12px}
+  .save{flex:1;padding:11px;background:var(--win);color:#fff;font-size:13px}
+  .reopen{padding:11px 14px;background:#fff;color:var(--muted);border:1px solid var(--line);font-size:13px}
+  .msg{font-size:11px;text-align:right;margin-top:6px;min-height:13px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="login" class="login">
+    <h1>Kemas Kini Keputusan</h1>
+    <div class="sub">Log masuk urus setia</div>
+    <input id="email" type="email" placeholder="Emel" autocomplete="username">
+    <input id="pass" type="password" placeholder="Kata laluan" autocomplete="current-password">
+    <button class="btn" id="btnLogin">Log masuk</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+
+  <div id="panel" class="hidden">
+    <div class="topbar">
+      <div><h1>Kemas Kini Keputusan</h1><div class="sub" id="who"></div></div>
+      <button class="out" id="btnOut">Log keluar</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { SUPABASE_URL, SUPABASE_ANON } from "./config.js";
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+const $ = s => document.querySelector(s);
+const ROUND = { group:"Kumpulan", qf:"Suku Akhir", sf:"Separuh Akhir", third:"Tempat Ke-3", final:"Akhir" };
+
+let cats=[], cat=null, teams={}, teamList=[], matches=[];
+
+$("#btnLogin").onclick = async () => {
+  $("#loginErr").textContent="";
+  const { error } = await sb.auth.signInWithPassword({ email:$("#email").value.trim(), password:$("#pass").value });
+  if(error) $("#loginErr").textContent="Log masuk gagal.";
+  else boot();
+};
+$("#btnOut").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+async function boot(){
+  const { data:{session} } = await sb.auth.getSession();
+  if(!session){ $("#login").classList.remove("hidden"); $("#panel").classList.add("hidden"); return; }
+  $("#login").classList.add("hidden"); $("#panel").classList.remove("hidden");
+  $("#who").textContent = session.user.email;
+  const { data } = await sb.from("categories").select("*").order("sort_order");
+  cats=data||[]; if(cats.length) cat=cats[0].id;
+  tabs(); if(cat) load();
+}
+function tabs(){
+  $("#tabs").innerHTML = cats.map(c=>`<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}</div>`).join("");
+  $("#tabs").querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cat=+el.dataset.id;tabs();load();});
+}
+async function load(){
+  const [{data:tm},{data:mt}] = await Promise.all([
+    sb.from("teams").select("*").eq("category_id",cat).order("name"),
+    sb.from("matches").select("*").eq("category_id",cat).order("id"),
+  ]);
+  teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
+  render();
+}
+
+function render(){
+  // pending first, done at the bottom
+  const sorted=[...matches].sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+  $("#list").innerHTML = sorted.map(m=>{
+    const label = m.round==='group'?`Kumpulan ${m.group_label||''}`:ROUND[m.round];
+    const isKO = m.round!=='group';
+    return `<div class="mc ${m.done?'done':''}" data-mid="${m.id}">
+      <div class="meta"><span>${label}</span>${m.done?'<span class="done-tag">TAMAT ✓</span>':''}</div>
+      ${row(m,'a',isKO)}${row(m,'b',isKO)}
+      <div class="foot">
+        ${m.done
+          ? `<button class="reopen" data-reopen>Buka semula</button>`
+          : `<button class="save" data-save>Simpan & Tamat</button>`}
+      </div>
+      <div class="msg"></div>
+    </div>`;
+  }).join("") || `<div class="sub">Tiada perlawanan.</div>`;
+  bind();
+}
+function row(m,side,isKO){
+  const id = side==='a'?m.team_a_id:m.team_b_id;
+  const sc = side==='a'?m.score_a:m.score_b;
+  const teamCell = isKO
+    ? `<select data-team="${side}" ${m.done?'disabled':''}>
+        <option value="">— Pilih pasukan —</option>
+        ${teamList.map(t=>`<option value="${t.id}" ${t.id===id?'selected':''}>${t.name}</option>`).join("")}
+       </select>`
+    : `<span class="name">${teams[id]?.name||'—'}</span>`;
+  return `<div class="row">${teamCell}
+    <input type="number" min="0" inputmode="numeric" data-score="${side}"
+      value="${sc??''}" placeholder="0" ${m.done?'disabled':''}></div>`;
+}
+
+function bind(){
+  document.querySelectorAll(".mc").forEach(card=>{
+    const mid=+card.dataset.mid;
+    const msg=card.querySelector(".msg");
+
+    card.querySelector("[data-save]")?.addEventListener("click", async ()=>{
+      const sa=card.querySelector('[data-score="a"]').value;
+      const sb_=card.querySelector('[data-score="b"]').value;
+      if(sa===""||sb_===""){ msg.textContent="Isi kedua-dua skor dulu."; msg.style.color="var(--danger)"; return; }
+      const patch={ score_a:+sa, score_b:+sb_, done:true, played_at:new Date().toISOString() };
+      const ta=card.querySelector('select[data-team="a"]'), tb=card.querySelector('select[data-team="b"]');
+      if(ta){ if(!ta.value||!tb.value){ msg.textContent="Pilih kedua-dua pasukan."; msg.style.color="var(--danger)"; return; }
+              patch.team_a_id=+ta.value; patch.team_b_id=+tb.value; }
+      const { error } = await sb.from("matches").update(patch).eq("id",mid);
+      if(error){ msg.textContent="Gagal simpan."; msg.style.color="var(--danger)"; }
+      else load();
+    });
+
+    card.querySelector("[data-reopen]")?.addEventListener("click", async ()=>{
+      await sb.from("matches").update({ done:false }).eq("id",mid);
+      load();
+    });
+  });
+}
+
+boot();
+</script>
+</body>
+</html>

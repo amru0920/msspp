@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MSSPP Bola Baling 2026 — Keputusan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F7F5F0;--card:#FFFFFF;--line:#E5E1D8;--ink:#1B1B18;--muted:#8B8578;
+        --accent:#7A1F1F;--accentSoft:#F6E9E9;--win:#1B6B45;--gold:#B98A1E}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:820px;margin:0 auto;padding:20px 16px 70px}
+  header{padding:4px 2px 18px;border-bottom:3px solid var(--accent);margin-bottom:16px}
+  .eyebrow{font-family:Archivo;font-weight:700;font-size:11px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase}
+  h1{font-family:Archivo;font-weight:800;font-size:24px;margin:4px 0 0;letter-spacing:-.01em;line-height:1.1}
+  .tabs,.views{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar,.views::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;font-family:Archivo;font-weight:700;font-size:13px;color:var(--muted);
+       background:var(--card);border:1px solid var(--line);padding:8px 15px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .tab.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+  .views .tab.on{color:var(--accent);background:var(--accentSoft);border-color:var(--accent)}
+  .section{font-family:Archivo;font-weight:700;font-size:12px;letter-spacing:.14em;color:var(--muted);
+           text-transform:uppercase;margin:20px 2px 10px}
+
+  /* Result rows (FIFA style) */
+  .rcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin-bottom:10px}
+  .rmeta{font-size:11px;color:var(--muted);padding:10px 0 4px}
+  .rrow{display:grid;grid-template-columns:1fr 40px;align-items:center;padding:7px 0;font-size:14.5px}
+  .rrow.first{border-bottom:1px dashed var(--line)}
+  .rrow:last-child{padding-bottom:12px}
+  .rname{font-weight:500}
+  .rscore{font-family:Archivo;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+  .winner .rname{font-weight:700}
+  .winner .rscore{color:var(--win)}
+  .winner .rname::after{content:" ◂";color:var(--win)}
+  .pending{color:var(--muted);font-style:italic}
+
+  /* Standings */
+  .grp{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+  .grp h3{font-family:Archivo;font-weight:700;font-size:13px;margin:2px 0 8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{font-family:Archivo;font-size:10px;letter-spacing:.05em;color:var(--muted);text-align:right;padding:5px 3px;border-bottom:1px solid var(--line)}
+  thead th.n{text-align:left}
+  tbody td{padding:8px 3px;text-align:right;border-bottom:1px solid #F0EDE5;font-variant-numeric:tabular-nums}
+  tbody td.n{text-align:left;font-weight:500}
+  tbody tr:nth-child(-n+2) td.n{color:var(--win);font-weight:700}
+  td.pts{font-family:Archivo;font-weight:800;color:var(--accent)}
+
+  /* Bracket */
+  .bracket{display:flex;gap:26px;overflow-x:auto;padding:8px 2px 18px}
+  .bcol{display:flex;flex-direction:column;justify-content:space-around;gap:16px;min-width:190px}
+  .bcol h4{font-family:Archivo;font-weight:700;font-size:11px;letter-spacing:.12em;color:var(--muted);
+           text-transform:uppercase;margin:0 0 4px;text-align:center}
+  .bm{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
+  .bm.final-match{border-color:var(--gold);border-width:2px}
+  .bt{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-size:13.5px;gap:8px}
+  .bt+.bt{border-top:1px solid var(--line)}
+  .bt .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bt .s{font-family:Archivo;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .bt.w{background:var(--accentSoft)}
+  .bt.w .n{font-weight:700}
+  .bt.w .s{color:var(--accent)}
+  .tbd{color:var(--muted);font-style:italic}
+  .champ{margin-top:8px;text-align:center;font-family:Archivo;font-weight:800;font-size:13px;color:var(--gold)}
+
+  .empty{color:var(--muted);font-size:13px;padding:16px 2px;text-align:center}
+  .hidden{display:none}
+  footer{color:var(--muted);font-size:11px;text-align:center;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Keputusan Rasmi</div>
+    <h1 id="title">MSSPP Bola Baling 2026</h1>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="views">
+    <div class="tab on" data-view="results">Keputusan</div>
+    <div class="tab" data-view="standings">Kedudukan</div>
+    <div class="tab" data-view="bracket">Bracket</div>
+  </div>
+
+  <div id="v-results"></div>
+  <div id="v-standings" class="hidden"></div>
+  <div id="v-bracket" class="hidden"></div>
+
+  <footer>Kejohanan Bola Baling MSSPP Peringkat Negeri 2026</footer>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { SUPABASE_URL, SUPABASE_ANON, TOURNAMENT } from "./config.js";
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+const $ = s => document.querySelector(s);
+document.getElementById("title").textContent = TOURNAMENT;
+
+const ROUND = { qf:"Suku Akhir", sf:"Separuh Akhir", third:"Tempat Ke-3", final:"Akhir" };
+let cats=[], cat=null, teams={}, matches=[];
+
+// view switching
+document.querySelectorAll(".views .tab").forEach(el => el.onclick = () => {
+  document.querySelectorAll(".views .tab").forEach(t=>t.classList.remove("on"));
+  el.classList.add("on");
+  ["results","standings","bracket"].forEach(v =>
+    $("#v-"+v).classList.toggle("hidden", v!==el.dataset.view));
+});
+
+async function boot(){
+  const { data } = await sb.from("categories").select("*").order("sort_order");
+  cats = data||[]; if(cats.length) cat = cats[0].id;
+  renderTabs(); if(cat) load();
+}
+function renderTabs(){
+  $("#tabs").innerHTML = cats.map(c=>`<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}</div>`).join("");
+  $("#tabs").querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cat=+el.dataset.id;renderTabs();load();});
+}
+async function load(){
+  const [{data:tm},{data:mt}] = await Promise.all([
+    sb.from("teams").select("*").eq("category_id",cat),
+    sb.from("matches").select("*").eq("category_id",cat).order("id"),
+  ]);
+  teams=Object.fromEntries((tm||[]).map(t=>[t.id,t])); matches=mt||[];
+  results(); standings(); bracket();
+}
+const nm = id => teams[id]?.name || null;
+
+// ---------- Results (FIFA-style stacked rows) ----------
+function results(){
+  const done = matches.filter(m=>m.done);
+  const upcoming = matches.filter(m=>!m.done && m.team_a_id && m.team_b_id);
+  let html = "";
+  if(done.length){
+    html += `<div class="section">Selesai</div>` + done.map(rc).join("");
+  }
+  if(upcoming.length){
+    html += `<div class="section">Belum Bermain</div>` + upcoming.map(rc).join("");
+  }
+  $("#v-results").innerHTML = html || `<div class="empty">Belum ada perlawanan.</div>`;
+}
+function rc(m){
+  const label = m.round==='group' ? `Kumpulan ${m.group_label||''}` : ROUND[m.round]||m.round;
+  const aWin = m.done && m.score_a > m.score_b;
+  const bWin = m.done && m.score_b > m.score_a;
+  return `<div class="rcard">
+    <div class="rmeta">${label}${m.done?'':' · <span class="pending">belum bermain</span>'}</div>
+    <div class="rrow first ${aWin?'winner':''}">
+      <span class="rname">${nm(m.team_a_id)||'—'}</span>
+      <span class="rscore">${m.done?m.score_a:''}</span>
+    </div>
+    <div class="rrow ${bWin?'winner':''}">
+      <span class="rname">${nm(m.team_b_id)||'—'}</span>
+      <span class="rscore">${m.done?m.score_b:''}</span>
+    </div>
+  </div>`;
+}
+
+// ---------- Standings ----------
+async function standings(){
+  const { data } = await sb.from("standings").select("*").eq("category_id",cat)
+    .order("pts",{ascending:false}).order("gd",{ascending:false}).order("gf",{ascending:false});
+  const rows = data||[];
+  if(!rows.length){ $("#v-standings").innerHTML=`<div class="empty">Belum ada keputusan kumpulan.</div>`; return; }
+  const g={}; rows.forEach(r=>(g[r.group_label] ||= []).push(r));
+  $("#v-standings").innerHTML = Object.keys(g).sort().map(k=>`
+    <div class="grp"><h3>Kumpulan ${k}</h3><table>
+    <thead><tr><th class="n">Pasukan</th><th>M</th><th>Me</th><th>S</th><th>K</th><th>+/−</th><th>Mata</th></tr></thead>
+    <tbody>${g[k].map((r,i)=>`<tr><td class="n">${i+1}. ${r.name}</td>
+      <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td>
+      <td>${r.gd>0?'+':''}${r.gd}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody>
+    </table></div>`).join("");
+}
+
+// ---------- Bracket (FIFA knockout) ----------
+function bracket(){
+  const ko = r => matches.filter(m=>m.round===r).sort((a,b)=>(a.bracket_pos||0)-(b.bracket_pos||0));
+  const qf=ko('qf'), sf=ko('sf'), th=ko('third'), fi=ko('final');
+  if(!qf.length && !sf.length && !fi.length){
+    $("#v-bracket").innerHTML=`<div class="empty">Bracket belum dibuka — peringkat kumpulan sedang berjalan.</div>`; return;
+  }
+  const col=(title,list)=> list.length?`<div class="bcol"><h4>${title}</h4>${list.map(bm).join("")}</div>`:"";
+  const champ = fi[0]?.done ? (fi[0].score_a>fi[0].score_b?nm(fi[0].team_a_id):nm(fi[0].team_b_id)) : null;
+  $("#v-bracket").innerHTML =
+    `<div class="bracket">${col("Suku Akhir",qf)}${col("Separuh Akhir",sf)}
+     <div class="bcol"><h4>Akhir</h4>${fi.map(m=>bm(m,true)).join("")}
+       ${champ?`<div class="champ">🏆 Johan: ${champ}</div>`:""}
+       ${th.length?`<h4 style="margin-top:14px">Tempat Ke-3</h4>${th.map(bm).join("")}`:""}
+     </div></div>`;
+}
+function bm(m, isFinal=false){
+  const aW = m.done && m.score_a>m.score_b, bW = m.done && m.score_b>m.score_a;
+  const row=(id,s,w)=>`<div class="bt ${w?'w':''}">
+    <span class="n ${id?'':'tbd'}">${nm(id)||'Menunggu'}</span>
+    <span class="s">${m.done?s:''}</span></div>`;
+  return `<div class="bm ${isFinal?'final-match':''}">${row(m.team_a_id,m.score_a,aW)}${row(m.team_b_id,m.score_b,bW)}</div>`;
+}
+
+boot();
+</script>
+</body>
+</html>
