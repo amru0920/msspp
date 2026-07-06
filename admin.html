@@ -6,64 +6,53 @@
 <title>MSSPP — Pentadbir</title>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --blue:#2C5CA8; --blueDark:#1B4079; --blueSoft:#E8EEF8;
-    --yellow:#F2DE1B; --ink:#152238; --muted:#6B7A94;
-    --bg:#F2F5FA; --card:#FFFFFF; --line:#D9E1EE;
-    --win:#1B7A4A; --danger:#C0392B;
-  }
+  :root{--blue:#2C5CA8;--blueDark:#1B4079;--blueSoft:#E8EEF8;--yellow:#F2DE1B;--ink:#152238;--muted:#6B7A94;
+        --bg:#F2F5FA;--card:#fff;--line:#D9E1EE;--win:#1B7A4A;--danger:#C0392B}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
   .wrap{max-width:660px;margin:0 auto;padding:16px 16px 70px}
-
   .brand{display:flex;align-items:center;gap:12px}
   .brand img{width:44px;height:44px}
   h1{font-family:Archivo;font-weight:800;font-size:17px;margin:0;color:var(--blueDark)}
   .sub{color:var(--muted);font-size:12px}
-
   .login{max-width:350px;margin:60px auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;border-top:4px solid var(--yellow)}
   .login .brand{justify-content:center;margin-bottom:14px}
   input,select{width:100%;padding:11px 12px;margin-top:8px;background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:9px;font-size:14px;font-family:inherit}
   button{font-family:Archivo;font-weight:700;cursor:pointer;border:none;border-radius:9px}
-  .btn{width:100%;padding:12px;margin-top:14px;background:var(--blue);color:#fff;font-size:14px}
+  .btn{width:100%;padding:12px;margin-top:12px;background:var(--blue);color:#fff;font-size:14px}
+  .btn.yellow{background:var(--yellow);color:var(--blueDark)}
   .err{color:var(--danger);font-size:12px;margin-top:10px;min-height:14px}
-
   .topbar{display:flex;justify-content:space-between;align-items:center;padding:6px 0 14px}
   .out{background:#fff;color:var(--muted);border:1px solid var(--line);padding:7px 12px;font-size:12px}
-
   .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
   .tab{flex:0 0 auto;font-family:Archivo;font-weight:700;font-size:13px;color:var(--blueDark);background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
-  .tab.on{color:var(--blueDark);background:var(--yellow);border-color:var(--yellow)}
-
+  .tab.on{background:var(--yellow);border-color:var(--yellow)}
   .mode{display:flex;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
-  .mode button{flex:1;padding:11px;background:#fff;color:var(--muted);font-size:13px;border-radius:0}
+  .mode button{flex:1;padding:11px;background:#fff;color:var(--muted);font-size:12.5px;border-radius:0}
   .mode button.on{background:var(--blue);color:#fff}
-
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .card.form{border-left:4px solid var(--yellow)}
   .card h3{font-family:Archivo;font-size:13px;margin:0 0 6px;color:var(--blueDark)}
+  .hint{font-size:12px;color:var(--muted);margin:2px 0 8px;line-height:1.5}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .grid2 > *{margin-top:8px}
   .grid2 input,.grid2 select{margin-top:0}
-
   .mc.done{opacity:.7}
   .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:10px}
   .done-tag{color:var(--win);font-weight:600}
   .row{display:grid;grid-template-columns:1fr 74px;gap:10px;align-items:center;margin:6px 0}
   .row input{margin:0;text-align:center;font-family:Archivo;font-weight:800;font-size:18px}
   .row select{margin:0}
-  .name{font-weight:600;font-size:14px}
+  .lock{font-weight:600;font-size:14px;padding:11px 12px;background:var(--blueSoft);border-radius:9px;color:var(--blueDark)}
+  .lock.tbd{color:var(--muted);font-style:italic;font-weight:400}
   .foot{display:flex;gap:8px;margin-top:12px}
   .save{flex:1;padding:11px;background:var(--win);color:#fff;font-size:13px}
   .ghost{padding:11px 13px;background:#fff;color:var(--muted);border:1px solid var(--line);font-size:13px}
   .del{padding:11px 13px;background:#fff;color:var(--danger);border:1px solid var(--line);font-size:13px}
   .msg{font-size:11px;text-align:right;margin-top:6px;min-height:13px}
-
   .team-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--blueSoft)}
   .team-row:last-child{border-bottom:none}
-  .team-row .name{flex:1}
-  .pill{font-family:Archivo;font-weight:800;font-size:11px;background:var(--blueSoft);color:var(--blueDark);padding:4px 10px;border-radius:999px}
+  .team-row .name{flex:1;font-weight:600;font-size:14px}
   .team-row select{width:86px;margin:0;padding:7px 8px;font-size:13px}
   .mini{padding:8px 11px;font-size:12px}
   .hidden{display:none}
@@ -71,66 +60,65 @@
 </head>
 <body>
 <div class="wrap">
-  <!-- LOGIN -->
   <div id="login" class="login">
-    <div class="brand"><img src="msspp-logo.png" alt="MSSPP"><h1>Pentadbir MSSPP</h1></div>
+    <div class="brand"><img src="msspp-logo.png" alt=""><h1>Pentadbir MSSPP</h1></div>
     <input id="email" type="email" placeholder="Emel" autocomplete="username">
     <input id="pass" type="password" placeholder="Kata laluan" autocomplete="current-password">
     <button class="btn" id="btnLogin">Log masuk</button>
     <div class="err" id="loginErr"></div>
   </div>
 
-  <!-- PANEL -->
   <div id="panel" class="hidden">
     <div class="topbar">
-      <div class="brand"><img src="msspp-logo.png" alt="MSSPP">
-        <div><h1>Pentadbir Kejohanan</h1><div class="sub" id="who"></div></div>
-      </div>
+      <div class="brand"><img src="msspp-logo.png" alt="">
+        <div><h1>Pentadbir Kejohanan</h1><div class="sub" id="who"></div></div></div>
       <button class="out" id="btnOut">Log keluar</button>
     </div>
-
     <div class="tabs" id="tabs"></div>
-
     <div class="mode">
-      <button class="on" data-mode="matches">Perlawanan</button>
-      <button data-mode="teams">Pasukan & Kumpulan</button>
+      <button class="on" data-mode="setup">1 · Setup</button>
+      <button data-mode="group">2 · Kumpulan</button>
+      <button data-mode="ko">3 · Kalah Mati</button>
     </div>
 
-    <!-- MATCHES MODE -->
-    <div id="m-matches">
+    <!-- SETUP -->
+    <div id="m-setup">
       <div class="card form">
-        <h3>+ Tambah Perlawanan</h3>
-        <div class="grid2">
-          <select id="nm-round">
-            <option value="group">Kumpulan</option><option value="qf">Suku Akhir</option>
-            <option value="sf">Separuh Akhir</option><option value="third">Tempat Ke-3</option>
-            <option value="final">Akhir</option>
-          </select>
-          <select id="nm-group"><option value="">— Kumpulan —</option></select>
-          <select id="nm-a"><option value="">Pasukan A</option></select>
-          <select id="nm-b"><option value="">Pasukan B</option></select>
-        </div>
-        <button class="btn" id="btnAddMatch" style="margin-top:12px">Tambah</button>
-        <div class="msg" id="nm-msg"></div>
-      </div>
-      <div id="matchList"></div>
-    </div>
-
-    <!-- TEAMS MODE -->
-    <div id="m-teams" class="hidden">
-      <div class="card form">
-        <h3>+ Tambah Pasukan</h3>
+        <h3>Tambah Pasukan</h3>
         <div class="grid2">
           <input id="nt-name" placeholder="Nama pasukan / daerah">
           <select id="nt-group"></select>
         </div>
-        <button class="btn" id="btnAddTeam" style="margin-top:12px">Tambah</button>
+        <button class="btn" id="btnAddTeam">Tambah Pasukan</button>
         <div class="msg" id="nt-msg"></div>
       </div>
-      <div class="card">
-        <h3>Senarai Pasukan — tukar kumpulan terus di sini</h3>
-        <div id="teamList"></div>
+      <div class="card"><h3>Senarai Pasukan</h3><div id="teamList"></div></div>
+    </div>
+
+    <!-- GROUP STAGE -->
+    <div id="m-group" class="hidden">
+      <div class="card form">
+        <h3>⚡ Jana Jadual Kumpulan (Round Robin)</h3>
+        <div class="hint">Auto-buat semua perlawanan liga untuk setiap kumpulan — setiap pasukan lawan setiap pasukan sekali.</div>
+        <button class="btn yellow" id="btnGenGroup">Jana Jadual Semua Kumpulan</button>
+        <div class="msg" id="gg-msg"></div>
       </div>
+      <div id="groupMatches"></div>
+    </div>
+
+    <!-- KNOCKOUT -->
+    <div id="m-ko" class="hidden">
+      <div class="card form">
+        <h3>⚡ Jana Bracket Kalah Mati</h3>
+        <div class="hint">Pilih saiz. Sistem buat bracket kosong + pautan auto: <b>pemenang naik sendiri</b> ke perlawanan seterusnya, yang kalah Separuh Akhir masuk Tempat Ke-3. You cuma isi pasukan pusingan pertama.</div>
+        <select id="ko-size">
+          <option value="4">4 pasukan — SF → Akhir + Tempat Ke-3</option>
+          <option value="8">8 pasukan — QF → SF → Akhir + Tempat Ke-3</option>
+        </select>
+        <button class="btn yellow" id="btnGenKO">Jana Bracket</button>
+        <div class="msg" id="gk-msg"></div>
+      </div>
+      <div id="koMatches"></div>
     </div>
   </div>
 </div>
@@ -145,7 +133,7 @@ const GROUPS = ["A","B","C","D"];
 
 let cats=[], cat=null, teamList=[], teams={}, matches=[];
 
-// ---- auth ----
+// ---------- auth ----------
 $("#btnLogin").onclick = async () => {
   $("#loginErr").textContent="";
   const { error } = await sb.auth.signInWithPassword({ email:$("#email").value.trim(), password:$("#pass").value });
@@ -166,13 +154,10 @@ function tabs(){
   $("#tabs").innerHTML = cats.map(c=>`<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}</div>`).join("");
   $("#tabs").querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cat=+el.dataset.id;tabs();load();});
 }
-
-// ---- mode switch ----
 document.querySelectorAll(".mode button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".mode button").forEach(x=>x.classList.remove("on"));
   b.classList.add("on");
-  $("#m-matches").classList.toggle("hidden", b.dataset.mode!=="matches");
-  $("#m-teams").classList.toggle("hidden", b.dataset.mode!=="teams");
+  ["setup","group","ko"].forEach(m=>$("#m-"+m).classList.toggle("hidden", m!==b.dataset.mode));
 });
 
 async function load(){
@@ -181,46 +166,32 @@ async function load(){
     sb.from("matches").select("*").eq("category_id",cat).order("id"),
   ]);
   teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
-  fillForms(); renderMatches(); renderTeams();
+  $("#nt-group").innerHTML = GROUPS.map(g=>`<option value="${g}">Kumpulan ${g}</option>`).join("");
+  renderTeams(); renderGroup(); renderKO();
 }
+const nm = id => teams[id]?.name || null;
 
-// ---- form dropdowns ----
-function fillForms(){
-  const opts = teamList.map(t=>`<option value="${t.id}">${t.name}${t.group_label?` (${t.group_label})`:''}</option>`).join("");
-  $("#nm-a").innerHTML = `<option value="">Pasukan A</option>`+opts;
-  $("#nm-b").innerHTML = `<option value="">Pasukan B</option>`+opts;
-  $("#nm-group").innerHTML = `<option value="">— Kumpulan —</option>`+GROUPS.map(g=>`<option>${g}</option>`).join("");
-  $("#nt-group").innerHTML = GROUPS.map(g=>`<option value="${g}">Kumpulan ${g}</option>`).join("")+`<option value="">Tiada kumpulan</option>`;
-}
-
-// ---- add team ----
+// ---------- SETUP: teams ----------
 $("#btnAddTeam").onclick = async () => {
-  const name = $("#nt-name").value.trim();
+  const name=$("#nt-name").value.trim();
   if(!name){ note("#nt-msg","Isi nama pasukan.",1); return; }
-  const { error } = await sb.from("teams").insert({ category_id:cat, name, group_label:$("#nt-group").value||null });
-  if(error){ note("#nt-msg","Gagal tambah.",1); return; }
+  const { error } = await sb.from("teams").insert({ category_id:cat, name, group_label:$("#nt-group").value });
+  if(error){ note("#nt-msg","Gagal.",1); return; }
   $("#nt-name").value=""; note("#nt-msg","Ditambah ✓"); load();
 };
-
-// ---- team list: change group / delete ----
 function renderTeams(){
   $("#teamList").innerHTML = teamList.map(t=>`
     <div class="team-row" data-tid="${t.id}">
       <span class="name">${t.name}</span>
-      <select data-grp>
-        ${GROUPS.map(g=>`<option value="${g}" ${t.group_label===g?'selected':''}>Kump ${g}</option>`).join("")}
-        <option value="" ${!t.group_label?'selected':''}>Tiada</option>
-      </select>
+      <select data-grp>${GROUPS.map(g=>`<option value="${g}" ${t.group_label===g?'selected':''}>Kump ${g}</option>`).join("")}
+        <option value="" ${!t.group_label?'selected':''}>Tiada</option></select>
       <button class="del mini" data-delteam>✕</button>
-    </div>`).join("") || `<div class="sub">Belum ada pasukan.</div>`;
-
+    </div>`).join("") || `<div class="sub">Belum ada pasukan — tambah di atas.</div>`;
   $("#teamList").querySelectorAll(".team-row").forEach(r=>{
     const tid=+r.dataset.tid;
-    r.querySelector("[data-grp]").onchange = async e => {
-      await sb.from("teams").update({ group_label:e.target.value||null }).eq("id",tid); load();
-    };
+    r.querySelector("[data-grp]").onchange = async e => { await sb.from("teams").update({group_label:e.target.value||null}).eq("id",tid); load(); };
     r.querySelector("[data-delteam]").onclick = async () => {
-      if(!confirm("Padam pasukan ini? Perlawanan berkaitan akan hilang pasukan.")) return;
+      if(!confirm("Padam pasukan ini?")) return;
       await sb.from("matches").update({team_a_id:null}).eq("team_a_id",tid);
       await sb.from("matches").update({team_b_id:null}).eq("team_b_id",tid);
       await sb.from("teams").delete().eq("id",tid); load();
@@ -228,69 +199,132 @@ function renderTeams(){
   });
 }
 
-// ---- add match ----
-$("#btnAddMatch").onclick = async () => {
-  const round=$("#nm-round").value, a=$("#nm-a").value, b=$("#nm-b").value, g=$("#nm-group").value;
-  if(round==="group" && !g){ note("#nm-msg","Pilih kumpulan untuk perlawanan kumpulan.",1); return; }
-  if(a && b && a===b){ note("#nm-msg","Pasukan A dan B sama.",1); return; }
-  const { error } = await sb.from("matches").insert({
-    category_id:cat, round, group_label: round==="group"?g:null,
-    team_a_id:a?+a:null, team_b_id:b?+b:null,
-  });
-  if(error){ note("#nm-msg","Gagal tambah.",1); return; }
-  note("#nm-msg","Ditambah ✓"); load();
+// ---------- GROUP: round robin generator ----------
+$("#btnGenGroup").onclick = async () => {
+  const existing = matches.filter(m=>m.round==='group');
+  if(existing.length && !confirm(`Dah ada ${existing.length} perlawanan kumpulan. Jana lagi akan TAMBAH (bukan ganti). Teruskan?`)) return;
+  const rows=[];
+  for(const g of GROUPS){
+    const gt = teamList.filter(t=>t.group_label===g);
+    for(let i=0;i<gt.length;i++)
+      for(let j=i+1;j<gt.length;j++)
+        rows.push({ category_id:cat, round:'group', group_label:g, team_a_id:gt[i].id, team_b_id:gt[j].id });
+  }
+  if(!rows.length){ note("#gg-msg","Tiada pasukan dalam kumpulan lagi.",1); return; }
+  const { error } = await sb.from("matches").insert(rows);
+  error ? note("#gg-msg","Gagal jana.",1) : note("#gg-msg",`${rows.length} perlawanan dijana ✓`);
+  load();
 };
-
-// ---- match list ----
-function renderMatches(){
-  const sorted=[...matches].sort((x,y)=>(x.done?1:0)-(y.done?1:0));
-  $("#matchList").innerHTML = sorted.map(m=>{
-    const label = m.round==='group'?`Kumpulan ${m.group_label||''}`:ROUND[m.round];
-    return `<div class="card mc ${m.done?'done':''}" data-mid="${m.id}">
-      <div class="meta"><span>${label} · #${m.id}</span>${m.done?'<span class="done-tag">TAMAT ✓</span>':''}</div>
-      ${row(m,'a')}${row(m,'b')}
-      <div class="foot">
-        ${m.done
-          ? `<button class="ghost" data-reopen>Buka semula</button>`
-          : `<button class="save" data-save>Simpan & Tamat</button>`}
-        <button class="del" data-delmatch>Padam</button>
-      </div>
-      <div class="msg"></div>
-    </div>`;
-  }).join("") || `<div class="sub">Tiada perlawanan — tambah di atas.</div>`;
-  bindMatches();
+function renderGroup(){
+  const gm = matches.filter(m=>m.round==='group').sort((a,b)=>(a.done?1:0)-(b.done?1:0) || (a.group_label||'').localeCompare(b.group_label||''));
+  $("#groupMatches").innerHTML = gm.map(matchCard).join("") || `<div class="sub">Belum ada perlawanan kumpulan.</div>`;
+  bindCards("#groupMatches");
 }
-function row(m,side){
-  const id = side==='a'?m.team_a_id:m.team_b_id;
-  const sc = side==='a'?m.score_a:m.score_b;
-  return `<div class="row">
-    <select data-team="${side}" ${m.done?'disabled':''}>
-      <option value="">— Pilih pasukan —</option>
-      ${teamList.map(t=>`<option value="${t.id}" ${t.id===id?'selected':''}>${t.name}${t.group_label?` (${t.group_label})`:''}</option>`).join("")}
-    </select>
-    <input type="number" min="0" inputmode="numeric" data-score="${side}" value="${sc??''}" placeholder="0" ${m.done?'disabled':''}>
+
+// ---------- KO: bracket generator with links ----------
+$("#btnGenKO").onclick = async () => {
+  const size=+$("#ko-size").value;
+  if(matches.some(m=>m.round!=='group') && !confirm("Bracket sedia ada akan DIPADAM dan dijana semula. Teruskan?")) return;
+  await sb.from("matches").delete().eq("category_id",cat).neq("round","group");
+
+  // insert final + third first, then link upwards
+  const ins = async r => (await sb.from("matches").insert(r).select().single()).data;
+  const fin   = await ins({category_id:cat, round:'final', bracket_pos:1});
+  const third = await ins({category_id:cat, round:'third', bracket_pos:1});
+  const sf1 = await ins({category_id:cat, round:'sf', bracket_pos:1, next_match_id:fin.id, next_slot:'a', loser_next_match_id:third.id, loser_next_slot:'a'});
+  const sf2 = await ins({category_id:cat, round:'sf', bracket_pos:2, next_match_id:fin.id, next_slot:'b', loser_next_match_id:third.id, loser_next_slot:'b'});
+  if(size===8){
+    await ins({category_id:cat, round:'qf', bracket_pos:1, next_match_id:sf1.id, next_slot:'a'});
+    await ins({category_id:cat, round:'qf', bracket_pos:2, next_match_id:sf1.id, next_slot:'b'});
+    await ins({category_id:cat, round:'qf', bracket_pos:3, next_match_id:sf2.id, next_slot:'a'});
+    await ins({category_id:cat, round:'qf', bracket_pos:4, next_match_id:sf2.id, next_slot:'b'});
+  }
+  note("#gk-msg","Bracket dijana ✓ — isi pasukan pusingan pertama di bawah.");
+  load();
+};
+function renderKO(){
+  const ord={qf:0,sf:1,third:2,final:3};
+  const ko = matches.filter(m=>m.round!=='group').sort((a,b)=>ord[a.round]-ord[b.round] || (a.bracket_pos||0)-(b.bracket_pos||0));
+  $("#koMatches").innerHTML = ko.map(matchCard).join("") || `<div class="sub">Belum ada bracket — jana di atas.</div>`;
+  bindCards("#koMatches");
+}
+
+// ---------- shared match card ----------
+// First KO round (no incoming feed) = editable dropdown. Fed slots = locked (auto).
+function isFed(m, slot){
+  return matches.some(x => (x.next_match_id===m.id && x.next_slot===slot) || (x.loser_next_match_id===m.id && x.loser_next_slot===slot));
+}
+function matchCard(m){
+  const label = m.round==='group' ? `Kumpulan ${m.group_label}` : `${ROUND[m.round]}${m.round==='qf'||m.round==='sf'?' '+m.bracket_pos:''}`;
+  return `<div class="card mc ${m.done?'done':''}" data-mid="${m.id}">
+    <div class="meta"><span>${label}</span>${m.done?'<span class="done-tag">TAMAT ✓</span>':''}</div>
+    ${slotRow(m,'a')}${slotRow(m,'b')}
+    <div class="foot">
+      ${m.done ? `<button class="ghost" data-reopen>Buka semula</button>` : `<button class="save" data-save>Simpan & Tamat</button>`}
+      <button class="del" data-delmatch>Padam</button>
+    </div><div class="msg"></div>
   </div>`;
 }
-function bindMatches(){
-  document.querySelectorAll(".mc").forEach(card=>{
+function slotRow(m,slot){
+  const id = slot==='a'?m.team_a_id:m.team_b_id;
+  const sc = slot==='a'?m.score_a:m.score_b;
+  const fed = m.round!=='group' && isFed(m,slot);
+  const cell = (m.round==='group')
+    ? `<span class="lock">${nm(id)||'—'}</span>`
+    : fed
+      ? `<span class="lock ${id?'':'tbd'}">${nm(id)||'Menunggu pemenang…'}</span>`
+      : `<select data-team="${slot}" ${m.done?'disabled':''}>
+          <option value="">— Pilih pasukan —</option>
+          ${teamList.map(t=>`<option value="${t.id}" ${t.id===id?'selected':''}>${t.name}${t.group_label?` (${t.group_label})`:''}</option>`).join("")}
+        </select>`;
+  return `<div class="row">${cell}
+    <input type="number" min="0" inputmode="numeric" data-score="${slot}" value="${sc??''}" placeholder="0" ${m.done?'disabled':''}></div>`;
+}
+
+function bindCards(root){
+  document.querySelectorAll(`${root} .mc`).forEach(card=>{
     const mid=+card.dataset.mid, msg=card.querySelector(".msg");
+    const m = matches.find(x=>x.id===mid);
 
     card.querySelector("[data-save]")?.addEventListener("click", async ()=>{
-      const a=card.querySelector('select[data-team="a"]').value;
-      const b=card.querySelector('select[data-team="b"]').value;
-      const sa=card.querySelector('[data-score="a"]').value;
-      const sc=card.querySelector('[data-score="b"]').value;
-      if(!a||!b){ err(msg,"Pilih kedua-dua pasukan."); return; }
-      if(a===b){ err(msg,"Pasukan A dan B sama."); return; }
-      if(sa===""||sc===""){ err(msg,"Isi kedua-dua skor."); return; }
-      const { error } = await sb.from("matches").update({
-        team_a_id:+a, team_b_id:+b, score_a:+sa, score_b:+sc,
-        done:true, played_at:new Date().toISOString(),
-      }).eq("id",mid);
-      error ? err(msg,"Gagal simpan.") : load();
+      const patch={ done:true, played_at:new Date().toISOString() };
+      // team slots: editable selects only
+      for(const slot of ['a','b']){
+        const sel=card.querySelector(`select[data-team="${slot}"]`);
+        const cur = slot==='a'?m.team_a_id:m.team_b_id;
+        const val = sel ? (sel.value?+sel.value:null) : cur;
+        if(!val){ err(msg,"Pasukan belum lengkap."); return; }
+        patch[slot==='a'?'team_a_id':'team_b_id']=val;
+      }
+      if(patch.team_a_id===patch.team_b_id){ err(msg,"Pasukan A dan B sama."); return; }
+      const sa=card.querySelector('[data-score="a"]').value, sb_=card.querySelector('[data-score="b"]').value;
+      if(sa===""||sb_===""){ err(msg,"Isi kedua-dua skor."); return; }
+      patch.score_a=+sa; patch.score_b=+sb_;
+      if(m.round!=='group' && patch.score_a===patch.score_b){ err(msg,"Kalah mati tak boleh seri — mesti ada pemenang."); return; }
+
+      const { error } = await sb.from("matches").update(patch).eq("id",mid);
+      if(error){ err(msg,"Gagal simpan."); return; }
+
+      // AUTO-ADVANCE
+      if(m.round!=='group'){
+        const winner = patch.score_a>patch.score_b ? patch.team_a_id : patch.team_b_id;
+        const loser  = patch.score_a>patch.score_b ? patch.team_b_id : patch.team_a_id;
+        if(m.next_match_id)       await sb.from("matches").update({ [m.next_slot==='a'?'team_a_id':'team_b_id']:winner }).eq("id",m.next_match_id);
+        if(m.loser_next_match_id) await sb.from("matches").update({ [m.loser_next_slot==='a'?'team_a_id':'team_b_id']:loser  }).eq("id",m.loser_next_match_id);
+      }
+      load();
     });
 
     card.querySelector("[data-reopen]")?.addEventListener("click", async ()=>{
+      // clear downstream slots this match fed (only if downstream not done)
+      if(m.round!=='group'){
+        for(const [mid2,slot] of [[m.next_match_id,m.next_slot],[m.loser_next_match_id,m.loser_next_slot]]){
+          if(!mid2) continue;
+          const d = matches.find(x=>x.id===mid2);
+          if(d && d.done){ alert("Perlawanan seterusnya dah TAMAT. Buka semula perlawanan itu dulu."); return; }
+          await sb.from("matches").update({ [slot==='a'?'team_a_id':'team_b_id']:null }).eq("id",mid2);
+        }
+      }
       await sb.from("matches").update({ done:false }).eq("id",mid); load();
     });
 
@@ -301,7 +335,7 @@ function bindMatches(){
   });
 }
 
-function note(sel,txt,isErr){ const el=$(sel); el.textContent=txt; el.style.color=isErr?"var(--danger)":"var(--win)"; setTimeout(()=>el.textContent="",2200); }
+function note(sel,txt,isErr){ const el=$(sel); el.textContent=txt; el.style.color=isErr?"var(--danger)":"var(--win)"; setTimeout(()=>el.textContent="",2600); }
 function err(el,txt){ el.textContent=txt; el.style.color="var(--danger)"; }
 
 boot();

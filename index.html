@@ -79,10 +79,14 @@
   tbody tr:nth-child(-n+2) td.n{color:var(--blue);font-weight:700}
   td.pts{font-family:Archivo;font-weight:800;color:var(--blueDark)}
 
-  /* Bracket */
-  .bracket{display:flex;gap:26px;overflow-x:auto;padding:8px 2px 18px}
+  /* Bracket — Challonge-style connectors */
+  .bracket{display:flex;gap:0;overflow-x:auto;padding:8px 2px 18px}
   .bcol{display:flex;flex-direction:column;justify-content:space-around;gap:16px;min-width:195px}
   .bcol h4{font-family:Archivo;font-weight:800;font-size:11px;letter-spacing:.12em;color:var(--blueDark);text-transform:uppercase;margin:0 0 4px;text-align:center}
+  .bjoin{width:26px;display:flex;flex-direction:column;justify-content:space-around}
+  .bjoin .link{flex:1;position:relative}
+  .bjoin .link::before{content:"";position:absolute;left:0;top:25%;bottom:25%;width:2px;background:var(--line);border-radius:2px}
+  .bjoin .link::after{content:"";position:absolute;left:0;top:50%;width:100%;height:2px;background:var(--line)}
   .bm{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .bm.final-match{border:2px solid var(--yellow);box-shadow:0 2px 10px rgba(242,222,27,.35)}
   .bt{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-size:13.5px;gap:8px}
@@ -205,9 +209,10 @@ function bracket(){
     $("#v-bracket").innerHTML=`<div class="empty">Bracket belum dibuka — peringkat kumpulan sedang berjalan.</div>`; return;
   }
   const col=(t,l)=> l.length?`<div class="bcol"><h4>${t}</h4>${l.map(m=>bm(m)).join("")}</div>`:"";
+  const join=n=> n?`<div class="bjoin">${Array.from({length:n},()=>'<div class="link"></div>').join("")}</div>`:"";
   const champ = fi[0]?.done ? (fi[0].score_a>fi[0].score_b?nm(fi[0].team_a_id):nm(fi[0].team_b_id)) : null;
   $("#v-bracket").innerHTML =
-    `<div class="bracket">${col("Suku Akhir",qf)}${col("Separuh Akhir",sf)}
+    `<div class="bracket">${col("Suku Akhir",qf)}${qf.length?join(sf.length):""}${col("Separuh Akhir",sf)}${sf.length?join(fi.length):""}
      <div class="bcol"><h4>Akhir</h4>${fi.map(m=>bm(m,true)).join("")}
        ${champ?`<div class="champ">🏆 Johan: ${champ}</div>`:""}
        ${th.length?`<h4 style="margin-top:14px">Tempat Ke-3</h4>${th.map(m=>bm(m)).join("")}`:""}
