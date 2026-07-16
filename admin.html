@@ -286,6 +286,22 @@ function bindCards(root){
     const mid=+card.dataset.mid, msg=card.querySelector(".msg");
     const m = matches.find(x=>x.id===mid);
 
+    // Auto-save pasukan sebaik dipilih (tak perlu skor) → terus naik ke bracket
+    card.querySelectorAll("select[data-team]").forEach(sel=>{
+      sel.addEventListener("change", async ()=>{
+        const slot=sel.dataset.team;
+        const col = slot==='a'?'team_a_id':'team_b_id';
+        const other = slot==='a'?m.team_b_id:m.team_a_id;
+        const val = sel.value?+sel.value:null;
+        if(val && val===other){ err(msg,"Pasukan A dan B tak boleh sama."); sel.value=""; return; }
+        const { error } = await sb.from("matches").update({ [col]: val }).eq("id",mid);
+        if(error){ err(msg,"Gagal simpan pasukan."); return; }
+        m[col]=val;                       // update local
+        msg.textContent="Pasukan disimpan ✓"; msg.style.color="var(--win)";
+        setTimeout(()=>msg.textContent="",1800);
+      });
+    });
+
     card.querySelector("[data-save]")?.addEventListener("click", async ()=>{
       const patch={ done:true, played_at:new Date().toISOString() };
       // team slots: editable selects only

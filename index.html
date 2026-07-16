@@ -274,6 +274,10 @@ function renderMatrix(){
     if(!m.done) return;
     const {team_a_id:a,team_b_id:b,score_a:sa,score_b:sb_}=m;
     if(!stats[a]||!stats[b]) return;
+    // Only count matches between teams CURRENTLY in the same group.
+    // Ignores stale matches left over after teams were moved between groups.
+    const ga=teams[a]?.group_label, gb=teams[b]?.group_label;
+    if(!ga || ga!==gb) return;
     stats[a].gf+=sa; stats[a].ga+=sb_;
     stats[b].gf+=sb_; stats[b].ga+=sa;
     if(sa>sb_){stats[a].pts+=3;stats[a].w++;stats[b].l++;}
