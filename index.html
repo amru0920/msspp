@@ -4,130 +4,161 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MSSPP Bola Baling 2026 — Keputusan</title>
-
-<!-- Link preview (WhatsApp / Telegram / FB). URL mesti ABSOLUTE. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MSSPP Bola Baling 2026">
 <meta property="og:title" content="Kejohanan Bola Baling MSSPP 2026">
 <meta property="og:description" content="Keputusan rasmi, kedudukan kumpulan & bracket — Peringkat Negeri Pulau Pinang.">
 <meta property="og:url" content="https://msspp.pages.dev/">
 <meta property="og:image" content="https://msspp.pages.dev/og.png?v=1">
-<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kejohanan Bola Baling MSSPP 2026">
-<meta name="twitter:description" content="Keputusan, kedudukan & bracket bola baling MSSPP 2026.">
 <meta name="twitter:image" content="https://msspp.pages.dev/og.png?v=1">
 <link rel="icon" href="msspp-logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --blue:#2C5CA8; --blueDark:#1B4079; --blueSoft:#E8EEF8;
-    --yellow:#F2DE1B; --ink:#152238; --muted:#6B7A94;
-    --bg:#F2F5FA; --card:#FFFFFF; --line:#D9E1EE;
-    --win:#1B7A4A; --gold:#B98A1E;
+    --blue:#2C5CA8;--blueDark:#1B4079;--blueSoft:#E8EEF8;
+    --yellow:#F2DE1B;--ink:#152238;--muted:#6B7A94;
+    --bg:#F2F5FA;--card:#fff;--line:#D9E1EE;--win:#1B7A4A;--gold:#B98A1E;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:840px;margin:0 auto;padding:0 16px 70px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 
-  /* Header banner: MSSPP blue with wave bottom (echoes the crest) */
-  .hero{
-    background:linear-gradient(180deg,var(--blueDark),var(--blue));
-    margin:0 -16px; padding:22px 16px 34px; color:#fff; position:relative;
-  }
-  .hero-inner{max-width:840px;margin:0 auto;display:flex;align-items:center;gap:14px}
-  .hero img{width:56px;height:56px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
+  /* ── HERO ── */
+  .hero{background:linear-gradient(160deg,var(--blueDark) 0%,var(--blue) 100%);color:#fff;position:relative;padding:22px 16px 36px}
+  .hero-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:14px}
+  .hero img{width:56px;height:56px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))}
   .eyebrow{font-family:Archivo;font-weight:700;font-size:11px;letter-spacing:.16em;color:var(--yellow);text-transform:uppercase}
-  h1{font-family:Archivo;font-weight:800;font-size:22px;margin:3px 0 0;letter-spacing:-.01em;line-height:1.15}
-  .wave{position:absolute;left:0;right:0;bottom:-1px;height:20px}
-  .wave svg{display:block;width:100%;height:100%}
+  h1{font-family:Archivo;font-weight:800;font-size:22px;line-height:1.15;margin-top:3px}
+  .wave{position:absolute;left:0;right:0;bottom:-1px;line-height:0}
+  .wave svg{display:block;width:100%;height:22px}
 
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px 70px}
+
+  /* ── TABS ── */
   .tabs,.views{display:flex;gap:8px;overflow-x:auto;padding:16px 0 4px;scrollbar-width:none}
   .tabs::-webkit-scrollbar,.views::-webkit-scrollbar{display:none}
-  .views{padding-top:8px}
-  .tab{flex:0 0 auto;font-family:Archivo;font-weight:700;font-size:13px;color:var(--blueDark);
-       background:var(--card);border:1px solid var(--line);padding:8px 15px;border-radius:999px;cursor:pointer;white-space:nowrap}
-  .tab.on{color:var(--blueDark);background:var(--yellow);border-color:var(--yellow)}
-  .views .tab.on{color:#fff;background:var(--blue);border-color:var(--blue)}
+  .tab{flex:0 0 auto;font-family:Archivo;font-weight:700;font-size:13px;
+       color:var(--blueDark);background:var(--card);border:1px solid var(--line);
+       padding:8px 16px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:.15s}
+  .tab.on{background:var(--yellow);border-color:var(--yellow)}
+  .views .tab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
 
-  .section{font-family:Archivo;font-weight:700;font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin:20px 2px 10px}
+  .section{font-family:Archivo;font-weight:700;font-size:11px;letter-spacing:.14em;
+           color:var(--muted);text-transform:uppercase;margin:20px 0 10px}
 
-  /* Result cards */
-  .rcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin-bottom:10px;border-left:4px solid var(--blue)}
+  /* ── RESULT CARDS ── */
+  .rcard{background:var(--card);border:1px solid var(--line);border-radius:12px;
+         padding:4px 14px;margin-bottom:10px;border-left:4px solid var(--blue)}
   .rmeta{font-size:11px;color:var(--muted);padding:10px 0 4px}
-  .rrow{display:grid;grid-template-columns:1fr 42px;align-items:center;padding:7px 0;font-size:14.5px}
+  .rrow{display:grid;grid-template-columns:1fr 44px;align-items:center;padding:7px 0;font-size:14px}
   .rrow.first{border-bottom:1px dashed var(--line)}
   .rrow:last-child{padding-bottom:12px}
-  .rname{font-weight:500}
-  .rscore{font-family:Archivo;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
   .winner .rname{font-weight:700;color:var(--blueDark)}
   .winner .rscore{color:var(--blue)}
-  .winner .rname::after{content:" ◂";color:var(--blue)}
+  .winner .rname::after{content:" ◂";color:var(--blue);font-size:12px}
+  .rscore{font-family:Archivo;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
   .pending{color:var(--muted);font-style:italic}
 
-  /* Standings */
-  .grp{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;overflow:hidden}
-  .grp h3{font-family:Archivo;font-weight:800;font-size:13px;margin:2px 0 10px;color:#fff;
-          background:var(--blue);display:inline-block;padding:4px 12px;border-radius:6px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  thead th{font-family:Archivo;font-size:10px;letter-spacing:.05em;color:var(--muted);text-align:right;padding:5px 3px;border-bottom:2px solid var(--yellow)}
-  thead th.n{text-align:left}
-  tbody td{padding:8px 3px;text-align:right;border-bottom:1px solid var(--blueSoft);font-variant-numeric:tabular-nums}
-  tbody td.n{text-align:left;font-weight:500}
-  tbody tr:nth-child(-n+2) td.n{color:var(--blue);font-weight:700}
-  td.pts{font-family:Archivo;font-weight:800;color:var(--blueDark)}
+  /* ── GROUP GRID (Image 1 style) ── */
+  .group-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:8px}
+  .grp-box{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .grp-hdr{background:var(--blue);color:#fff;font-family:Archivo;font-weight:800;
+           font-size:13px;padding:9px 14px;letter-spacing:.04em}
+  .grp-team{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--blueSoft);font-size:13.5px}
+  .grp-team:last-child{border-bottom:none}
+  .grp-seed{font-family:Archivo;font-weight:800;font-size:11px;color:var(--muted);width:18px}
 
-  /* Bracket — Challonge-style connectors */
-  .bracket{display:flex;gap:0;overflow-x:auto;padding:8px 2px 18px}
-  .bcol{display:flex;flex-direction:column;justify-content:space-around;gap:16px;min-width:195px}
-  .bcol h4{font-family:Archivo;font-weight:800;font-size:11px;letter-spacing:.12em;color:var(--blueDark);text-transform:uppercase;margin:0 0 4px;text-align:center}
-  .bjoin{width:26px;display:flex;flex-direction:column;justify-content:space-around}
-  .bjoin .link{flex:1;position:relative}
-  .bjoin .link::before{content:"";position:absolute;left:0;top:25%;bottom:25%;width:2px;background:var(--line);border-radius:2px}
-  .bjoin .link::after{content:"";position:absolute;left:0;top:50%;width:100%;height:2px;background:var(--line)}
-  .bm{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-  .bm.final-match{border:2px solid var(--yellow);box-shadow:0 2px 10px rgba(242,222,27,.35)}
-  .bt{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-size:13.5px;gap:8px}
+  /* ── ROUND-ROBIN MATRIX (Image 2 style) ── */
+  .matrix-wrap{overflow-x:auto;margin-bottom:16px}
+  .rr-title{font-family:Archivo;font-weight:800;font-size:13px;
+            background:var(--blue);color:#fff;display:inline-block;
+            padding:5px 14px;border-radius:8px 8px 0 0}
+  table.matrix{border-collapse:collapse;min-width:100%}
+  table.matrix th,table.matrix td{border:1px solid var(--line);padding:0;text-align:center;font-size:12.5px}
+  table.matrix thead th{background:var(--blueSoft);color:var(--blueDark);
+                        font-family:Archivo;font-weight:700;font-size:11px;
+                        letter-spacing:.04em;padding:8px 10px;white-space:nowrap}
+  table.matrix thead th.corner{background:transparent;border:none}
+  table.matrix thead th.team-hdr{min-width:80px}
+  table.matrix .row-lbl{background:var(--blueSoft);font-family:Archivo;font-weight:700;
+                        font-size:12px;color:var(--blueDark);padding:6px 12px;text-align:left;white-space:nowrap}
+  table.matrix .self{background:#F0F3F8}
+  table.matrix .cell-match{padding:3px 4px}
+  .mini-score{display:flex;flex-direction:column;gap:1px;min-width:52px}
+  .ms-row{display:flex;justify-content:space-between;align-items:center;
+          padding:3px 7px;font-size:12px;gap:6px;border-radius:4px}
+  .ms-row .mn{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+  .ms-row .ms{font-family:Archivo;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .ms-row.winner{background:var(--blueSoft)}
+  .ms-row.winner .mn{color:var(--blue);font-weight:700}
+  .ms-row.winner .ms{color:var(--blue)}
+  /* stats columns */
+  table.matrix .stat{padding:8px 10px;font-family:Archivo;font-weight:700;font-variant-numeric:tabular-nums;font-size:13px}
+  table.matrix .stat.pts{color:var(--blueDark);font-size:14px}
+  table.matrix .rank-row:nth-child(-n+2) .row-lbl{color:var(--win)}
+
+  /* ── BRACKET ── */
+  .bracket{display:flex;gap:0;overflow-x:auto;padding:10px 2px 18px}
+  .bcol{display:flex;flex-direction:column;justify-content:space-around;gap:16px;min-width:175px}
+  .bcol h4{font-family:Archivo;font-weight:800;font-size:11px;letter-spacing:.12em;
+           color:var(--blueDark);text-transform:uppercase;margin:0 0 6px;text-align:center}
+  .bjoin{width:24px;flex:0 0 24px;display:flex;flex-direction:column}
+  .bjoin .lk{flex:1;position:relative}
+  .bjoin .lk::before{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:var(--line)}
+  .bjoin .lk.top::after{content:"";position:absolute;right:0;bottom:0;width:100%;height:2px;background:var(--line)}
+  .bjoin .lk.bot::after{content:"";position:absolute;right:0;top:0;width:100%;height:2px;background:var(--line)}
+  .bjoin .mid{height:2px;background:var(--line);width:100%}
+  .bm{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:8px}
+  .bm:last-child{margin-bottom:0}
+  .bm.final-match{border:2px solid var(--yellow);box-shadow:0 2px 12px rgba(242,222,27,.3)}
+  .bt{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-size:13px;gap:6px}
   .bt+.bt{border-top:1px solid var(--line)}
-  .bt .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bt .s{font-family:Archivo;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .bt .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .bt .s{font-family:Archivo;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted);min-width:20px;text-align:right}
   .bt.w{background:var(--blueSoft)}
   .bt.w .n{font-weight:700;color:var(--blueDark)}
   .bt.w .s{color:var(--blue)}
   .tbd{color:var(--muted);font-style:italic}
-  .champ{margin-top:8px;text-align:center;font-family:Archivo;font-weight:800;font-size:13px;color:var(--gold)}
+  .champ{text-align:center;font-family:Archivo;font-weight:800;font-size:13px;color:var(--gold);padding:8px 0 2px}
 
-  .empty{color:var(--muted);font-size:13px;padding:16px 2px;text-align:center}
+  .empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center}
   .hidden{display:none}
   footer{color:var(--muted);font-size:11px;text-align:center;margin-top:28px}
 </style>
 </head>
 <body>
+
 <div class="hero">
   <div class="hero-inner">
     <img src="msspp-logo.png" alt="MSSPP">
     <div>
       <div class="eyebrow">Keputusan Rasmi · Bola Baling</div>
-      <h1 id="title">MSSPP Peringkat Negeri 2026</h1>
+      <h1>MSSPP Peringkat Negeri 2026</h1>
     </div>
   </div>
-  <div class="wave"><svg viewBox="0 0 800 20" preserveAspectRatio="none">
-    <path d="M0,12 C100,2 200,22 300,12 C400,2 500,22 600,12 C700,2 800,22 800,12 L800,20 L0,20 Z" fill="#F2F5FA"/>
+  <div class="wave"><svg viewBox="0 0 800 22" preserveAspectRatio="none">
+    <path d="M0,14 C100,4 200,24 300,14 C400,4 500,24 600,14 C700,4 800,22 800,14 L800,22 L0,22 Z" fill="#F2F5FA"/>
   </svg></div>
 </div>
 
 <div class="wrap">
+  <!-- Category tabs -->
   <div class="tabs" id="tabs"></div>
+
+  <!-- View tabs -->
   <div class="views">
-    <div class="tab on" data-view="results">Keputusan</div>
-    <div class="tab" data-view="standings">Kedudukan</div>
+    <div class="tab on" data-view="groups">Kumpulan</div>
+    <div class="tab" data-view="results">Keputusan</div>
+    <div class="tab" data-view="matrix">Jadual Mata</div>
     <div class="tab" data-view="bracket">Bracket</div>
   </div>
 
-  <div id="v-results"></div>
-  <div id="v-standings" class="hidden"></div>
+  <!-- Views -->
+  <div id="v-groups"></div>
+  <div id="v-results" class="hidden"></div>
+  <div id="v-matrix" class="hidden"></div>
   <div id="v-bracket" class="hidden"></div>
 
   <footer>Majlis Sukan Sekolah Pulau Pinang · Bola Baling 2026</footer>
@@ -135,93 +166,211 @@
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-import { SUPABASE_URL, SUPABASE_ANON, TOURNAMENT } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON } from "./config.js";
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 const $ = s => document.querySelector(s);
+const ROUND = {qf:"Suku Akhir",sf:"Separuh Akhir",third:"Tempat Ke-3",final:"Akhir"};
 
-const ROUND = { qf:"Suku Akhir", sf:"Separuh Akhir", third:"Tempat Ke-3", final:"Akhir" };
-let cats=[], cat=null, teams={}, matches=[];
+let cats=[], cat=null, teams={}, teamList=[], matches=[];
 
-document.querySelectorAll(".views .tab").forEach(el => el.onclick = () => {
+// ── view switching ──
+document.querySelectorAll(".views .tab").forEach(el=>el.onclick=()=>{
   document.querySelectorAll(".views .tab").forEach(t=>t.classList.remove("on"));
   el.classList.add("on");
-  ["results","standings","bracket"].forEach(v =>
+  ["groups","results","matrix","bracket"].forEach(v=>
     $("#v-"+v).classList.toggle("hidden", v!==el.dataset.view));
 });
 
+// ── boot ──
 async function boot(){
   const { data } = await sb.from("categories").select("*").order("sort_order");
-  cats = data||[]; if(cats.length) cat = cats[0].id;
+  cats=data||[]; if(cats.length) cat=cats[0].id;
   renderTabs(); if(cat) load();
 }
 function renderTabs(){
-  $("#tabs").innerHTML = cats.map(c=>`<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}</div>`).join("");
+  $("#tabs").innerHTML=cats.map(c=>
+    `<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}</div>`).join("");
   $("#tabs").querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cat=+el.dataset.id;renderTabs();load();});
 }
 async function load(){
-  const [{data:tm},{data:mt}] = await Promise.all([
-    sb.from("teams").select("*").eq("category_id",cat),
+  const [{data:tm},{data:mt}]=await Promise.all([
+    sb.from("teams").select("*").eq("category_id",cat).order("name"),
     sb.from("matches").select("*").eq("category_id",cat).order("id"),
   ]);
-  teams=Object.fromEntries((tm||[]).map(t=>[t.id,t])); matches=mt||[];
-  results(); standings(); bracket();
+  teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
+  renderGroups(); renderResults(); renderMatrix(); renderBracket();
 }
-const nm = id => teams[id]?.name || null;
+const nm=id=>teams[id]?.name||null;
 
-function results(){
-  const done = matches.filter(m=>m.done);
-  const upcoming = matches.filter(m=>!m.done && m.team_a_id && m.team_b_id);
-  let html = "";
-  if(done.length) html += `<div class="section">Selesai</div>`+done.map(rc).join("");
-  if(upcoming.length) html += `<div class="section">Belum Bermain</div>`+upcoming.map(rc).join("");
-  $("#v-results").innerHTML = html || `<div class="empty">Belum ada perlawanan.</div>`;
+// ════════════════════════════════════════
+// 1. GROUP GRID — macam Image 1
+// ════════════════════════════════════════
+function renderGroups(){
+  const grouped={};
+  teamList.forEach(t=>{ if(t.group_label)(grouped[t.group_label]||=[]).push(t); });
+  const labels=Object.keys(grouped).sort();
+  if(!labels.length){ $("#v-groups").innerHTML=`<div class="empty">Pasukan belum ditetapkan kumpulan.</div>`; return; }
+  $("#v-groups").innerHTML=`<div class="group-grid">${
+    labels.map(g=>`<div class="grp-box">
+      <div class="grp-hdr">KUMPULAN ${g}</div>
+      ${grouped[g].map((t,i)=>`<div class="grp-team">
+        <span class="grp-seed">${g}${i+1}</span>${t.name}
+      </div>`).join("")}
+    </div>`).join("")
+  }</div>`;
+}
+
+// ════════════════════════════════════════
+// 2. RESULTS — FIFA card style
+// ════════════════════════════════════════
+function renderResults(){
+  const done=matches.filter(m=>m.done);
+  const upcoming=matches.filter(m=>!m.done&&m.team_a_id&&m.team_b_id);
+  let html="";
+  if(done.length) html+=`<div class="section">Selesai</div>`+done.map(rc).join("");
+  if(upcoming.length) html+=`<div class="section">Belum Bermain</div>`+upcoming.map(rc).join("");
+  $("#v-results").innerHTML=html||`<div class="empty">Belum ada perlawanan.</div>`;
 }
 function rc(m){
-  const label = m.round==='group' ? `Kumpulan ${m.group_label||''}` : ROUND[m.round]||m.round;
-  const aWin = m.done && m.score_a > m.score_b;
-  const bWin = m.done && m.score_b > m.score_a;
+  const label=m.round==='group'?`Kumpulan ${m.group_label||''}`:ROUND[m.round]||m.round;
+  const aW=m.done&&m.score_a>m.score_b, bW=m.done&&m.score_b>m.score_a;
   return `<div class="rcard">
     <div class="rmeta">${label}${m.done?'':' · <span class="pending">belum bermain</span>'}</div>
-    <div class="rrow first ${aWin?'winner':''}"><span class="rname">${nm(m.team_a_id)||'—'}</span><span class="rscore">${m.done?m.score_a:''}</span></div>
-    <div class="rrow ${bWin?'winner':''}"><span class="rname">${nm(m.team_b_id)||'—'}</span><span class="rscore">${m.done?m.score_b:''}</span></div>
+    <div class="rrow first ${aW?'winner':''}"><span class="rname">${nm(m.team_a_id)||'—'}</span><span class="rscore">${m.done?m.score_a:''}</span></div>
+    <div class="rrow ${bW?'winner':''}"><span class="rname">${nm(m.team_b_id)||'—'}</span><span class="rscore">${m.done?m.score_b:''}</span></div>
   </div>`;
 }
 
-async function standings(){
-  const { data } = await sb.from("standings").select("*").eq("category_id",cat)
-    .order("pts",{ascending:false}).order("gd",{ascending:false}).order("gf",{ascending:false});
-  const rows = data||[];
-  if(!rows.length){ $("#v-standings").innerHTML=`<div class="empty">Belum ada keputusan kumpulan.</div>`; return; }
-  const g={}; rows.forEach(r=>(g[r.group_label] ||= []).push(r));
-  $("#v-standings").innerHTML = Object.keys(g).sort().map(k=>`
-    <div class="grp"><h3>Kumpulan ${k}</h3><table>
-    <thead><tr><th class="n">Pasukan</th><th>M</th><th>Me</th><th>S</th><th>K</th><th>+/−</th><th>Mata</th></tr></thead>
-    <tbody>${g[k].map((r,i)=>`<tr><td class="n">${i+1}. ${r.name}</td>
-      <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td>
-      <td>${r.gd>0?'+':''}${r.gd}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody>
-    </table></div>`).join("");
+// ════════════════════════════════════════
+// 3. ROUND-ROBIN MATRIX — macam Image 2
+//    Rows & cols = teams in same group
+//    Cell = mini score card
+//    Right = JRGN / KENA / DFST / MATA / KEDUDUKAN
+// ════════════════════════════════════════
+function renderMatrix(){
+  const grouped={};
+  teamList.forEach(t=>{ if(t.group_label)(grouped[t.group_label]||=[]).push(t); });
+  const labels=Object.keys(grouped).sort();
+  if(!labels.length){ $("#v-matrix").innerHTML=`<div class="empty">Pasukan belum ditetapkan kumpulan.</div>`; return; }
+
+  const groupMatches=matches.filter(m=>m.round==='group');
+  // index: "teamA_id-teamB_id" → match
+  const idx={};
+  groupMatches.forEach(m=>{
+    idx[`${m.team_a_id}-${m.team_b_id}`]=m;
+    idx[`${m.team_b_id}-${m.team_a_id}`]=m;
+  });
+
+  // compute stats per team
+  const stats={};
+  teamList.forEach(t=>{stats[t.id]={gf:0,ga:0,pts:0,w:0,d:0,l:0}});
+  groupMatches.filter(m=>m.done).forEach(m=>{
+    const {team_a_id:a,team_b_id:b,score_a:sa,score_b:sb_}=m;
+    if(!stats[a]||!stats[b]) return;
+    stats[a].gf+=sa; stats[a].ga+=sb_;
+    stats[b].gf+=sb_; stats[b].ga+=sa;
+    if(sa>sb_){stats[a].pts+=3;stats[a].w++;stats[b].l++;}
+    else if(sa===sb_){stats[a].pts+=1;stats[a].d++;stats[b].pts+=1;stats[b].d++;}
+    else{stats[b].pts+=3;stats[b].w++;stats[a].l++;}
+  });
+
+  let html="";
+  for(const g of labels){
+    const gt=grouped[g];
+    // sort by pts → gd → gf
+    const sorted=[...gt].sort((a,b)=>{
+      const sa=stats[a.id]||{pts:0,gf:0,ga:0}, sb=stats[b.id]||{pts:0,gf:0,ga:0};
+      return (sb.pts-sa.pts)||(sb.gf-sb.ga-(sa.gf-sa.ga))||(sb.gf-sa.gf);
+    });
+
+    const cols=sorted.map(t=>`<th class="team-hdr">${t.name}</th>`).join("");
+    const rows=sorted.map((row,ri)=>{
+      const s=stats[row.id]||{gf:0,ga:0,pts:0};
+      const cells=sorted.map(col=>{
+        if(row.id===col.id) return `<td class="self"></td>`;
+        const m=idx[`${row.id}-${col.id}`];
+        if(!m||!m.done) return `<td></td>`;
+        // from row's perspective
+        const myScore=m.team_a_id===row.id?m.score_a:m.score_b;
+        const opScore=m.team_a_id===row.id?m.score_b:m.score_a;
+        const won=myScore>opScore;
+        return `<td class="cell-match"><div class="mini-score">
+          <div class="ms-row ${won?'winner':''}"><span class="mn">${row.name}</span><span class="ms">${myScore}</span></div>
+          <div class="ms-row ${!won&&myScore!==opScore?'':''}"><span class="mn">${col.name}</span><span class="ms">${opScore}</span></div>
+        </div></td>`;
+      }).join("");
+      return `<tr class="rank-row">
+        <td class="row-lbl">${ri+1}. ${row.name}</td>
+        ${cells}
+        <td class="stat">${s.gf}</td>
+        <td class="stat">${s.ga}</td>
+        <td class="stat">${s.gf-s.ga>0?'+':''}${s.gf-s.ga}</td>
+        <td class="stat pts">${s.pts}</td>
+        <td class="stat">${ri+1}</td>
+      </tr>`;
+    }).join("");
+
+    html+=`<div class="matrix-wrap">
+      <div class="rr-title">Kumpulan ${g}</div>
+      <table class="matrix">
+        <thead><tr>
+          <th class="corner"></th>${cols}
+          <th>JRGN</th><th>KENA</th><th>DFST</th><th>MATA</th><th>KEDUDUKAN</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }
+  $("#v-matrix").innerHTML=html;
 }
 
-function bracket(){
-  const ko = r => matches.filter(m=>m.round===r).sort((a,b)=>(a.bracket_pos||0)-(b.bracket_pos||0) || a.id-b.id);
-  const qf=ko('qf'), sf=ko('sf'), th=ko('third'), fi=ko('final');
-  if(!qf.length && !sf.length && !fi.length){
-    $("#v-bracket").innerHTML=`<div class="empty">Bracket belum dibuka — peringkat kumpulan sedang berjalan.</div>`; return;
+// ════════════════════════════════════════
+// 4. BRACKET — connector lines
+// ════════════════════════════════════════
+function renderBracket(){
+  const ko=r=>matches.filter(m=>m.round===r).sort((a,b)=>(a.bracket_pos||0)-(b.bracket_pos||0)||a.id-b.id);
+  const qf=ko('qf'),sf=ko('sf'),th=ko('third'),fi=ko('final');
+  if(!qf.length&&!sf.length&&!fi.length){
+    $("#v-bracket").innerHTML=`<div class="empty">Bracket belum dibuka.</div>`; return;
   }
-  const col=(t,l)=> l.length?`<div class="bcol"><h4>${t}</h4>${l.map(m=>bm(m)).join("")}</div>`:"";
-  const join=n=> n?`<div class="bjoin">${Array.from({length:n},()=>'<div class="link"></div>').join("")}</div>`:"";
-  const champ = fi[0]?.done ? (fi[0].score_a>fi[0].score_b?nm(fi[0].team_a_id):nm(fi[0].team_b_id)) : null;
-  $("#v-bracket").innerHTML =
-    `<div class="bracket">${col("Suku Akhir",qf)}${qf.length?join(sf.length):""}${col("Separuh Akhir",sf)}${sf.length?join(fi.length):""}
-     <div class="bcol"><h4>Akhir</h4>${fi.map(m=>bm(m,true)).join("")}
-       ${champ?`<div class="champ">🏆 Johan: ${champ}</div>`:""}
-       ${th.length?`<h4 style="margin-top:14px">Tempat Ke-3</h4>${th.map(m=>bm(m)).join("")}`:""}
-     </div></div>`;
+  const champ=fi[0]?.done?(fi[0].score_a>fi[0].score_b?nm(fi[0].team_a_id):nm(fi[0].team_b_id)):null;
+
+  const bCol=(title,list)=>list.length?`<div class="bcol"><h4>${title}</h4>${list.map(m=>bmCard(m)).join("")}</div>`:"";
+
+  // connector join column between two rounds
+  const joinCol=(leftCount)=>{
+    // pair every 2 left matches → 1 right match
+    const pairs=Math.ceil(leftCount/2);
+    const segs=Array.from({length:pairs},(_,i)=>
+      `<div style="flex:1;display:flex;flex-direction:column">
+        <div class="lk top" style="flex:1;position:relative;border-right:2px solid var(--line)">
+          <div style="position:absolute;right:0;bottom:0;width:24px;height:2px;background:var(--line)"></div>
+        </div>
+        <div class="lk bot" style="flex:1;position:relative;border-right:2px solid var(--line)">
+          <div style="position:absolute;right:0;top:0;width:24px;height:2px;background:var(--line)"></div>
+        </div>
+      </div>`).join("");
+    return `<div style="width:24px;display:flex;flex-direction:column;gap:16px;padding-top:26px">${segs}</div>`;
+  };
+
+  $("#v-bracket").innerHTML=`<div class="bracket">
+    ${bCol("Suku Akhir",qf)}
+    ${qf.length?joinCol(qf.length):""}
+    ${bCol("Separuh Akhir",sf)}
+    ${sf.length?joinCol(sf.length):""}
+    <div class="bcol">
+      <h4>Akhir</h4>
+      ${fi.map(m=>bmCard(m,true)).join("")}
+      ${champ?`<div class="champ">🏆 Johan: ${champ}</div>`:""}
+      ${th.length?`<h4 style="margin-top:16px">Tempat Ke-3</h4>${th.map(m=>bmCard(m)).join("")}`:""}
+    </div>
+  </div>`;
 }
-function bm(m,isFinal=false){
+function bmCard(m,isFinal=false){
   const aW=m.done&&m.score_a>m.score_b, bW=m.done&&m.score_b>m.score_a;
   const row=(id,s,w)=>`<div class="bt ${w?'w':''}">
-    <span class="n ${id?'':'tbd'}">${nm(id)||'Menunggu'}</span><span class="s">${m.done?s:''}</span></div>`;
+    <span class="n ${id?'':'tbd'}">${nm(id)||'Menunggu…'}</span>
+    <span class="s">${m.done?s:''}</span></div>`;
   return `<div class="bm ${isFinal?'final-match':''}">${row(m.team_a_id,m.score_a,aW)}${row(m.team_b_id,m.score_b,bW)}</div>`;
 }
 
