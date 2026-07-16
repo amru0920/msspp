@@ -85,15 +85,14 @@
   table.matrix .row-lbl{background:var(--blueSoft);font-family:Archivo;font-weight:700;
                         font-size:12px;color:var(--blueDark);padding:6px 12px;text-align:left;white-space:nowrap}
   table.matrix .self{background:#F0F3F8}
-  table.matrix .cell-match{padding:3px 4px}
-  .mini-score{display:flex;flex-direction:column;gap:1px;min-width:52px}
-  .ms-row{display:flex;justify-content:space-between;align-items:center;
-          padding:3px 7px;font-size:12px;gap:6px;border-radius:4px}
-  .ms-row .mn{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
-  .ms-row .ms{font-family:Archivo;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
-  .ms-row.winner{background:var(--blueSoft)}
-  .ms-row.winner .mn{color:var(--blue);font-weight:700}
-  .ms-row.winner .ms{color:var(--blue)}
+  table.matrix .cell-match{padding:8px 10px;min-width:64px}
+  table.matrix .cell-match.won{background:var(--blueSoft)}
+  .cell-sc{display:flex;justify-content:center;align-items:center;gap:8px;
+           font-family:Archivo;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+  .cell-match.won .cell-sc{color:var(--blue)}
+  .cell-sc .div{color:var(--muted);font-weight:400;font-size:13px}
+  .cell-pt{font-size:11px;color:var(--muted);margin-top:2px}
+  .cell-match.won .cell-pt{color:var(--blueDark);font-weight:600}
   /* stats columns */
   table.matrix .stat{padding:8px 10px;font-family:Archivo;font-weight:700;font-variant-numeric:tabular-nums;font-size:13px}
   table.matrix .stat.pts{color:var(--blueDark);font-size:14px}
@@ -293,11 +292,12 @@ function renderMatrix(){
         // from row's perspective
         const myScore=m.team_a_id===row.id?m.score_a:m.score_b;
         const opScore=m.team_a_id===row.id?m.score_b:m.score_a;
-        const won=myScore>opScore;
-        return `<td class="cell-match"><div class="mini-score">
-          <div class="ms-row ${won?'winner':''}"><span class="mn">${row.name}</span><span class="ms">${myScore}</span></div>
-          <div class="ms-row ${!won&&myScore!==opScore?'':''}"><span class="mn">${col.name}</span><span class="ms">${opScore}</span></div>
-        </div></td>`;
+        const won=myScore>opScore, draw=myScore===opScore;
+        const pts=won?3:draw?1:0;
+        return `<td class="cell-match ${won?'won':''}">
+          <div class="cell-sc"><span>${myScore}</span><span class="div">|</span><span>${opScore}</span></div>
+          <div class="cell-pt">(${pts})</div>
+        </td>`;
       }).join("");
       return `<tr class="rank-row">
         <td class="row-lbl">${ri+1}. ${row.name}</td>
