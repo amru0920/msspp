@@ -253,17 +253,25 @@ function renderMatrix(){
   if(!labels.length){ $("#v-matrix").innerHTML=`<div class="empty">Pasukan belum ditetapkan kumpulan.</div>`; return; }
 
   const groupMatches=matches.filter(m=>m.round==='group');
-  // index: "teamA_id-teamB_id" → match
-  const idx={};
-  groupMatches.forEach(m=>{
-    idx[`${m.team_a_id}-${m.team_b_id}`]=m;
-    idx[`${m.team_b_id}-${m.team_a_id}`]=m;
-  });
 
-  // compute stats per team
+  // Dedupe: ONE match per unordered pair (avoids duplicate-generate inflation).
+  // Whatever match shows in the cell is exactly what counts in JRGN/KENA/MATA.
+  const pairKey=(x,y)=>[Math.min(x,y),Math.max(x,y)].join("-");
+  const pairMatch=new Map();
+  groupMatches.forEach(m=>{
+    if(!m.team_a_id||!m.team_b_id) return;
+    const k=pairKey(m.team_a_id,m.team_b_id);
+    const cur=pairMatch.get(k);
+    // prefer a completed match; otherwise keep the latest id
+    if(!cur || (m.done && !cur.done) || (m.done===cur.done && m.id>cur.id)) pairMatch.set(k,m);
+  });
+  const getMatch=(x,y)=>pairMatch.get(pairKey(x,y));
+
+  // stats per team (from deduped matches only)
   const stats={};
   teamList.forEach(t=>{stats[t.id]={gf:0,ga:0,pts:0,w:0,d:0,l:0}});
-  groupMatches.filter(m=>m.done).forEach(m=>{
+  pairMatch.forEach(m=>{
+    if(!m.done) return;
     const {team_a_id:a,team_b_id:b,score_a:sa,score_b:sb_}=m;
     if(!stats[a]||!stats[b]) return;
     stats[a].gf+=sa; stats[a].ga+=sb_;
@@ -273,21 +281,33 @@ function renderMatrix(){
     else{stats[b].pts+=3;stats[b].w++;stats[a].l++;}
   });
 
+  // Ranking (peraturan MSSPP): MATA → DFST → JRGN → head-to-head
+  const cmp=(a,b)=>{
+    const sa=stats[a.id], sb=stats[b.id];
+    if(sb.pts!==sa.pts) return sb.pts-sa.pts;                 // mata
+    const gda=sa.gf-sa.ga, gdb=sb.gf-sb.ga;
+    if(gdb!==gda) return gdb-gda;                             // 5.2.1 DFST
+    if(sb.gf!==sa.gf) return sb.gf-sa.gf;                     // 5.2.2 JRGN
+    const h=getMatch(a.id,b.id);                              // 5.2.3 head-to-head
+    if(h&&h.done){
+      const aSc=h.team_a_id===a.id?h.score_a:h.score_b;
+      const bSc=h.team_a_id===a.id?h.score_b:h.score_a;
+      if(aSc>bSc) return -1; if(bSc>aSc) return 1;
+    }
+    return 0;                                                 // 5.2.4 lambung syiling — manual
+  };
+
   let html="";
   for(const g of labels){
     const gt=grouped[g];
-    // sort by pts → gd → gf
-    const sorted=[...gt].sort((a,b)=>{
-      const sa=stats[a.id]||{pts:0,gf:0,ga:0}, sb=stats[b.id]||{pts:0,gf:0,ga:0};
-      return (sb.pts-sa.pts)||(sb.gf-sb.ga-(sa.gf-sa.ga))||(sb.gf-sa.gf);
-    });
+    const sorted=[...gt].sort(cmp);
 
     const cols=sorted.map(t=>`<th class="team-hdr">${t.name}</th>`).join("");
     const rows=sorted.map((row,ri)=>{
       const s=stats[row.id]||{gf:0,ga:0,pts:0};
       const cells=sorted.map(col=>{
         if(row.id===col.id) return `<td class="self"></td>`;
-        const m=idx[`${row.id}-${col.id}`];
+        const m=getMatch(row.id,col.id);
         if(!m||!m.done) return `<td></td>`;
         // from row's perspective
         const myScore=m.team_a_id===row.id?m.score_a:m.score_b;
