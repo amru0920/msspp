@@ -98,9 +98,26 @@
     <!-- GROUP STAGE -->
     <div id="m-group" class="hidden">
       <div class="card form">
-        <h3>⚡ Jana Jadual Kumpulan (Round Robin)</h3>
-        <div class="hint">Auto-buat semua perlawanan liga untuk setiap kumpulan — setiap pasukan lawan setiap pasukan sekali.</div>
+        <h3>➕ Tambah Perlawanan Manual</h3>
+        <div class="hint">Ikut jadual rasmi you. Isi BIL & MASA kalau nak (ikut jadual bertulis), pilih kumpulan & pasukan.</div>
+        <div class="grid2" style="margin-bottom:8px">
+          <input id="mm-no" type="number" min="1" placeholder="BIL (cth: 1)">
+          <input id="mm-time" placeholder="MASA (cth: 0830)">
+        </div>
+        <select id="mm-group" style="margin-bottom:8px"></select>
+        <div class="grid2">
+          <select id="mm-a"><option value="">Pasukan A</option></select>
+          <select id="mm-b"><option value="">Pasukan B</option></select>
+        </div>
+        <button class="btn" id="btnAddManual">Tambah Perlawanan</button>
+        <div class="msg" id="mm-msg"></div>
+      </div>
+
+      <div class="card form">
+        <h3>⚡ Jana Jadual Auto (Round Robin)</h3>
+        <div class="hint">Cepat tapi turutan ikut sistem, bukan jadual rasmi. Guna kalau tak kisah susunan.</div>
         <button class="btn yellow" id="btnGenGroup">Jana Jadual Semua Kumpulan</button>
+        <button class="del" id="btnClearGroup" style="width:100%;margin-top:8px">🗑️ Padam Semua Perlawanan Kumpulan</button>
         <div class="msg" id="gg-msg"></div>
       </div>
       <div id="groupMatches"></div>
@@ -163,13 +180,51 @@ document.querySelectorAll(".mode button").forEach(b=>b.onclick=()=>{
 async function load(){
   const [{data:tm},{data:mt}] = await Promise.all([
     sb.from("teams").select("*").eq("category_id",cat).order("name"),
-    sb.from("matches").select("*").eq("category_id",cat).order("id"),
+    sb.from("matches").select("*").eq("category_id",cat).order("match_no",{nullsFirst:false}).order("id"),
   ]);
   teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
   $("#nt-group").innerHTML = GROUPS.map(g=>`<option value="${g}">Kumpulan ${g}</option>`).join("");
+  fillManualForm();
   renderTeams(); renderGroup(); renderKO();
 }
 const nm = id => teams[id]?.name || null;
+
+// populate manual-add dropdowns
+function fillManualForm(){
+  const opts = teamList.map(t=>`<option value="${t.id}">${t.name}${t.group_label?` (${t.group_label})`:''}</option>`).join("");
+  $("#mm-group").innerHTML = GROUPS.map(g=>`<option value="${g}">Kumpulan ${g}</option>`).join("");
+  $("#mm-a").innerHTML = `<option value="">Pasukan A</option>`+opts;
+  $("#mm-b").innerHTML = `<option value="">Pasukan B</option>`+opts;
+}
+
+// ---------- GROUP: manual add ----------
+$("#btnAddManual").onclick = async () => {
+  const a=$("#mm-a").value, b=$("#mm-b").value, g=$("#mm-group").value;
+  if(!a||!b){ note("#mm-msg","Pilih kedua-dua pasukan.",1); return; }
+  if(a===b){ note("#mm-msg","Pasukan A & B sama.",1); return; }
+  const row={
+    category_id:cat, round:'group', group_label:g,
+    team_a_id:+a, team_b_id:+b,
+    match_no: $("#mm-no").value?+$("#mm-no").value:null,
+    match_time: $("#mm-time").value.trim()||null,
+  };
+  const { error } = await sb.from("matches").insert(row);
+  if(error){ note("#mm-msg","Gagal tambah.",1); return; }
+  // auto-increment BIL untuk kemudahan
+  if($("#mm-no").value) $("#mm-no").value = +$("#mm-no").value + 1;
+  $("#mm-a").value=""; $("#mm-b").value="";
+  note("#mm-msg","Perlawanan ditambah ✓"); load();
+};
+
+// ---------- GROUP: delete all ----------
+$("#btnClearGroup").onclick = async () => {
+  const n = matches.filter(m=>m.round==='group').length;
+  if(!n){ note("#gg-msg","Tiada perlawanan kumpulan.",1); return; }
+  if(!confirm(`Padam SEMUA ${n} perlawanan kumpulan untuk kategori ini? Tindakan ini kekal.`)) return;
+  const { error } = await sb.from("matches").delete().eq("category_id",cat).eq("round","group");
+  error ? note("#gg-msg","Gagal padam.",1) : note("#gg-msg","Semua perlawanan kumpulan dipadam ✓");
+  load();
+};
 
 // ---------- SETUP: teams ----------
 $("#btnAddTeam").onclick = async () => {
@@ -216,7 +271,8 @@ $("#btnGenGroup").onclick = async () => {
   load();
 };
 function renderGroup(){
-  const gm = matches.filter(m=>m.round==='group').sort((a,b)=>(a.done?1:0)-(b.done?1:0) || (a.group_label||'').localeCompare(b.group_label||''));
+  const gm = matches.filter(m=>m.round==='group')
+    .sort((a,b)=>((a.match_no||9999)-(b.match_no||9999)) || (a.id-b.id));
   $("#groupMatches").innerHTML = gm.map(matchCard).join("") || `<div class="sub">Belum ada perlawanan kumpulan.</div>`;
   bindCards("#groupMatches");
 }
@@ -256,8 +312,9 @@ function isFed(m, slot){
 }
 function matchCard(m){
   const label = m.round==='group' ? `Kumpulan ${m.group_label}` : `${ROUND[m.round]}${m.round==='qf'||m.round==='sf'?' '+m.bracket_pos:''}`;
+  const sched = [m.match_no?`BIL ${m.match_no}`:'', m.match_time||''].filter(Boolean).join(' · ');
   return `<div class="card mc ${m.done?'done':''}" data-mid="${m.id}">
-    <div class="meta"><span>${label}</span>${m.done?'<span class="done-tag">TAMAT ✓</span>':''}</div>
+    <div class="meta"><span>${sched?sched+' — ':''}${label}</span>${m.done?'<span class="done-tag">TAMAT ✓</span>':''}</div>
     ${slotRow(m,'a')}${slotRow(m,'b')}
     <div class="foot">
       ${m.done ? `<button class="ghost" data-reopen>Buka semula</button>` : `<button class="save" data-save>Simpan & Tamat</button>`}

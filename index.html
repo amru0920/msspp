@@ -223,8 +223,9 @@ function renderGroups(){
 // 2. RESULTS — FIFA card style
 // ════════════════════════════════════════
 function renderResults(){
-  const done=matches.filter(m=>m.done);
-  const upcoming=matches.filter(m=>!m.done&&m.team_a_id&&m.team_b_id);
+  const bySched=(a,b)=>((a.match_no||9999)-(b.match_no||9999))||(a.id-b.id);
+  const done=matches.filter(m=>m.done).sort(bySched);
+  const upcoming=matches.filter(m=>!m.done&&m.team_a_id&&m.team_b_id).sort(bySched);
   let html="";
   if(done.length) html+=`<div class="section">Selesai</div>`+done.map(rc).join("");
   if(upcoming.length) html+=`<div class="section">Belum Bermain</div>`+upcoming.map(rc).join("");
@@ -232,9 +233,10 @@ function renderResults(){
 }
 function rc(m){
   const label=m.round==='group'?`Kumpulan ${m.group_label||''}`:ROUND[m.round]||m.round;
+  const sched=[m.match_no?`BIL ${m.match_no}`:'', m.match_time||''].filter(Boolean).join(' · ');
   const aW=m.done&&m.score_a>m.score_b, bW=m.done&&m.score_b>m.score_a;
   return `<div class="rcard">
-    <div class="rmeta">${label}${m.done?'':' · <span class="pending">belum bermain</span>'}</div>
+    <div class="rmeta">${sched?sched+' — ':''}${label}${m.done?'':' · <span class="pending">belum bermain</span>'}</div>
     <div class="rrow first ${aW?'winner':''}"><span class="rname">${nm(m.team_a_id)||'—'}</span><span class="rscore">${m.done?m.score_a:''}</span></div>
     <div class="rrow ${bW?'winner':''}"><span class="rname">${nm(m.team_b_id)||'—'}</span><span class="rscore">${m.done?m.score_b:''}</span></div>
   </div>`;
