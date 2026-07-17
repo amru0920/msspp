@@ -56,6 +56,20 @@
   .team-row select{width:86px;margin:0;padding:7px 8px;font-size:13px}
   .mini{padding:8px 11px;font-size:12px}
   .hidden{display:none}
+
+  /* Category banner + group layout (Setup) */
+  .cat-banner{display:flex;align-items:center;gap:8px;background:var(--yellow);
+    color:var(--blueDark);font-family:Archivo;font-weight:800;font-size:14px;
+    padding:11px 16px;border-radius:10px;margin-bottom:12px}
+  .cat-banner small{font-family:Inter;font-weight:500;color:var(--blueDark);opacity:.75;font-size:12px}
+  .glayout{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .gbox{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .gbox-h{background:var(--blue);color:#fff;font-family:Archivo;font-weight:800;font-size:13px;padding:8px 12px}
+  .gbox-r{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--blueSoft);font-size:13.5px}
+  .gbox-r:last-child{border-bottom:none}
+  .gbox-seed{font-family:Archivo;font-weight:800;font-size:11px;color:#fff;background:var(--blue);
+    padding:2px 7px;border-radius:5px;min-width:26px;text-align:center}
+  .gbox-empty{color:var(--muted);font-style:italic;font-size:12px;padding:8px 12px}
 </style>
 </head>
 <body>
@@ -83,6 +97,7 @@
 
     <!-- SETUP -->
     <div id="m-setup">
+      <div class="cat-banner" id="catBanner"></div>
       <div class="card form">
         <h3>Tambah Pasukan</h3>
         <div class="grid2">
@@ -92,6 +107,9 @@
         <button class="btn" id="btnAddTeam">Tambah Pasukan</button>
         <div class="msg" id="nt-msg"></div>
       </div>
+
+      <div class="card"><h3>Susunan Kumpulan</h3><div id="groupLayout"></div></div>
+
       <div class="card"><h3>Senarai Pasukan</h3><div id="teamList"></div></div>
     </div>
 
@@ -185,9 +203,34 @@ async function load(){
   teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
   $("#nt-group").innerHTML = GROUPS.map(g=>`<option value="${g}">Kumpulan ${g}</option>`).join("");
   fillManualForm();
+  renderCatBanner(); renderGroupLayout();
   renderTeams(); renderGroup(); renderKO();
 }
 const nm = id => teams[id]?.name || null;
+
+// Category banner — make it obvious which category you're editing
+function renderCatBanner(){
+  const c = cats.find(x=>x.id===cat);
+  $("#catBanner").innerHTML = c
+    ? `📋 Sedang urus: ${c.name} <small>· ${teamList.length} pasukan · setiap kategori berasingan</small>`
+    : "";
+}
+
+// Visual group layout (macam jadual rasmi: A1, A2… B1, B2…)
+function renderGroupLayout(){
+  const grouped={};
+  teamList.forEach(t=>{ if(t.group_label)(grouped[t.group_label]||=[]).push(t); });
+  const labels=GROUPS.filter(g=>grouped[g]?.length);
+  if(!labels.length){ $("#groupLayout").innerHTML=`<div class="gbox-empty">Belum ada pasukan dalam kumpulan. Tambah pasukan di atas.</div>`; return; }
+  $("#groupLayout").innerHTML = `<div class="glayout">${
+    labels.map(g=>`<div class="gbox">
+      <div class="gbox-h">KUMPULAN ${g}</div>
+      ${grouped[g].map((t,i)=>`<div class="gbox-r">
+        <span class="gbox-seed">${g}${i+1}</span>${t.name}
+      </div>`).join("")}
+    </div>`).join("")
+  }</div>`;
+}
 
 // populate manual-add dropdowns
 function fillManualForm(){
