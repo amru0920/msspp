@@ -123,6 +123,38 @@
   .champ{text-align:center;font-family:Archivo;font-weight:800;font-size:13px;color:var(--gold);padding:8px 0 2px}
 
   .empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center}
+
+  /* ── JADUAL (official schedule table) ── */
+  .sched-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:4px}
+  table.sched{border-collapse:collapse;width:100%;min-width:560px}
+  table.sched thead th{background:var(--blue);color:#fff;font-family:Archivo;font-weight:700;
+    font-size:10.5px;letter-spacing:.06em;padding:9px 8px;text-align:center;white-space:nowrap}
+  table.sched td{border-bottom:1px solid var(--blueSoft);padding:9px 8px;font-size:13px;text-align:center}
+  table.sched tr:last-child td{border-bottom:none}
+  table.sched .c-bil{font-family:Archivo;font-weight:800;color:var(--muted);width:34px}
+  table.sched .c-time{font-family:Archivo;font-weight:700;font-variant-numeric:tabular-nums;width:56px}
+  table.sched .c-kump{width:42px}
+  .kump-tag{font-family:Archivo;font-weight:800;font-size:10.5px;background:var(--blueSoft);
+    color:var(--blueDark);padding:3px 7px;border-radius:5px}
+  table.sched .c-team{text-align:left;font-weight:600;min-width:130px}
+  table.sched .c-team.right{text-align:right}
+  .seed-tag{font-family:Archivo;font-weight:800;font-size:9.5px;color:var(--muted);
+    background:#EEF2F8;padding:2px 5px;border-radius:4px;margin:0 5px}
+  .team-ph{color:var(--muted);font-style:italic;font-weight:400}
+  .c-vs{color:var(--muted);font-size:11px;width:24px}
+  table.sched .c-res{width:104px;white-space:nowrap}
+  .res-score{font-family:Archivo;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;color:var(--blueDark)}
+  .res-none{color:var(--muted);font-size:12px}
+  .badge-live{display:inline-flex;align-items:center;gap:5px;background:#E11D48;color:#fff;
+    font-family:Archivo;font-weight:800;font-size:9.5px;letter-spacing:.06em;
+    padding:4px 8px;border-radius:999px;white-space:nowrap}
+  .badge-live .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:blink 1.2s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+  tr.is-live td{background:#FFF1F3}
+  tr.is-done td{background:#FAFBFD}
+  tr.is-done .c-team{color:var(--muted)}
+  tr.is-done .c-team.won{color:var(--blueDark);font-weight:700}
+  .sched-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
   .hidden{display:none}
   footer{color:var(--muted);font-size:11px;text-align:center;margin-top:28px}
 </style>
@@ -148,17 +180,18 @@
 
   <!-- View tabs -->
   <div class="views">
-    <div class="tab on" data-view="groups">Kumpulan</div>
-    <div class="tab" data-view="results">Keputusan</div>
+    <div class="tab on" data-view="schedule">Jadual</div>
+    <div class="tab" data-view="groups">Kumpulan</div>
     <div class="tab" data-view="matrix">Jadual Mata</div>
     <div class="tab" data-view="bracket">Bracket</div>
   </div>
 
   <!-- Views -->
-  <div id="v-groups"></div>
-  <div id="v-results" class="hidden"></div>
+  <div id="v-schedule"></div>
+  <div id="v-groups" class="hidden"></div>
   <div id="v-matrix" class="hidden"></div>
   <div id="v-bracket" class="hidden"></div>
+  <div id="v-results" class="hidden"></div>
 
   <footer>Majlis Sukan Sekolah Pulau Pinang · Bola Baling 2026</footer>
 </div>
@@ -176,7 +209,7 @@ let cats=[], cat=null, teams={}, teamList=[], matches=[];
 document.querySelectorAll(".views .tab").forEach(el=>el.onclick=()=>{
   document.querySelectorAll(".views .tab").forEach(t=>t.classList.remove("on"));
   el.classList.add("on");
-  ["groups","results","matrix","bracket"].forEach(v=>
+  ["schedule","groups","matrix","bracket","results"].forEach(v=>
     $("#v-"+v).classList.toggle("hidden", v!==el.dataset.view));
 });
 
@@ -198,9 +231,100 @@ async function load(){
     sb.from("matches").select("*").eq("category_id",cat).order("id"),
   ]);
   teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
-  renderGroups(); renderResults(); renderMatrix(); renderBracket();
+  renderSchedule(); renderGroups(); renderResults(); renderMatrix(); renderBracket();
 }
 const nm=id=>teams[id]?.name||null;
+
+// ════════════════════════════════════════
+// 0. JADUAL — macam jadual rasmi
+// ════════════════════════════════════════
+const KUMP_TAG = m =>
+  m.round==='group' ? (m.group_label||'-') :
+  m.round==='qf'    ? 'QF'+(m.bracket_pos||'') :
+  m.round==='sf'    ? 'SF'+(m.bracket_pos||'') :
+  m.round==='final' ? 'F'  :
+  m.round==='third' ? '3RD': '-';
+
+// Label sementara bila pasukan belum ditetapkan (ikut jadual rasmi)
+function placeholder(m,slot){
+  if(m.round==='sf'){
+    if(m.bracket_pos===1) return slot==='a'?'JOHAN A':'NAIB JOHAN B';
+    if(m.bracket_pos===2) return slot==='a'?'JOHAN B':'NAIB JOHAN A';
+    return 'MENUNGGU';
+  }
+  if(m.round==='final') return slot==='a'?'MENANG SF1':'MENANG SF2';
+  if(m.round==='third') return slot==='a'?'KALAH SF1':'KALAH SF2';
+  return 'MENUNGGU';
+}
+function seedOf(id){
+  const t=teams[id]; if(!t||!t.group_label||!t.seed_no) return '';
+  return t.group_label+t.seed_no;
+}
+// "0830" / "08:30" → Date hari ini
+function parseTime(t){
+  if(!t) return null;
+  const s=String(t).replace(/\D/g,'');
+  if(s.length<3) return null;
+  const hh=+s.slice(0,s.length-2), mm=+s.slice(-2);
+  if(isNaN(hh)||isNaN(mm)||hh>23||mm>59) return null;
+  const d=new Date(); d.setHours(hh,mm,0,0); return d;
+}
+
+function renderSchedule(){
+  const bySched=(a,b)=>((a.match_no||9999)-(b.match_no||9999))||(a.id-b.id);
+  const list=[...matches].sort(bySched);
+  if(!list.length){ $("#v-schedule").innerHTML=`<div class="empty">Jadual belum dimasukkan.</div>`; return; }
+
+  const now=new Date();
+  const starts=list.map(m=>parseTime(m.match_time));
+
+  const rows=list.map((m,i)=>{
+    // tingkap masa: dari masa mula hingga masa perlawanan berikutnya (atau +30 min)
+    const start=starts[i];
+    let end=null;
+    for(let j=i+1;j<list.length;j++){ if(starts[j]){ end=starts[j]; break; } }
+    if(start && !end) end=new Date(start.getTime()+30*60000);
+    const inWindow = start && now>=start && now<end;
+    const isLive = !m.done && (m.live || inWindow);
+
+    const aName=nm(m.team_a_id), bName=nm(m.team_b_id);
+    const aW=m.done&&m.score_a>m.score_b, bW=m.done&&m.score_b>m.score_a;
+
+    const teamCell=(name,ph,seed,won,right)=>{
+      const label = name ? name : `<span class="team-ph">${ph}</span>`;
+      const sd = seed?`<span class="seed-tag">${seed}</span>`:'';
+      return right
+        ? `<td class="c-team right ${won?'won':''}">${label}${sd}</td>`
+        : `<td class="c-team ${won?'won':''}">${sd}${label}</td>`;
+    };
+
+    const result = m.done
+      ? `<span class="res-score">${m.score_a} – ${m.score_b}</span>`
+      : isLive
+        ? `<span class="badge-live"><span class="dot"></span>SEDANG BERMAIN</span>`
+        : `<span class="res-none">—</span>`;
+
+    return `<tr class="${isLive?'is-live':''} ${m.done?'is-done':''}">
+      <td class="c-bil">${m.match_no??'-'}</td>
+      <td class="c-time">${m.match_time||'-'}</td>
+      <td class="c-kump"><span class="kump-tag">${KUMP_TAG(m)}</span></td>
+      ${teamCell(aName,placeholder(m,'a'),seedOf(m.team_a_id),aW,false)}
+      <td class="c-vs">lwn</td>
+      ${teamCell(bName,placeholder(m,'b'),seedOf(m.team_b_id),bW,true)}
+      <td class="c-res">${result}</td>
+    </tr>`;
+  }).join("");
+
+  $("#v-schedule").innerHTML=`
+    <div class="sched-wrap"><table class="sched">
+      <thead><tr>
+        <th>BIL</th><th>MASA</th><th>KUMP</th>
+        <th colspan="3">PERLAWANAN</th><th>KEPUTUSAN</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="sched-note">*Jadual adalah tertakluk kepada pindaan semasa hari pertandingan.</div>`;
+}
 
 // ════════════════════════════════════════
 // 1. GROUP GRID — macam Image 1
@@ -403,6 +527,10 @@ function bmCard(m,isFinal=false){
 }
 
 boot();
+
+// Auto-segar: ambil data baru setiap 45s, kemas status "sedang bermain" setiap 20s
+setInterval(()=>{ if(cat) load(); }, 45000);
+setInterval(()=>{ if(cat) renderSchedule(); }, 20000);
 
 // ── 5-tap logo → admin (easter egg) ──
 (function(){

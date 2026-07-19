@@ -49,6 +49,8 @@
   .save{flex:1;padding:11px;background:var(--win);color:#fff;font-size:13px}
   .ghost{padding:11px 13px;background:#fff;color:var(--muted);border:1px solid var(--line);font-size:13px}
   .del{padding:11px 13px;background:#fff;color:var(--danger);border:1px solid var(--line);font-size:13px}
+  .livebtn{padding:11px 13px;background:#fff;color:#E11D48;border:1px solid #F5C2CB;font-size:13px}
+  .livebtn.on{background:#E11D48;color:#fff;border-color:#E11D48}
   .msg{font-size:11px;text-align:right;margin-top:6px;min-height:13px}
   .team-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--blueSoft)}
   .team-row:last-child{border-bottom:none}
@@ -368,7 +370,9 @@ function matchCard(m){
     <div class="meta"><span>${sched?sched+' — ':''}${label}</span>${m.done?'<span class="done-tag">TAMAT ✓</span>':''}</div>
     ${slotRow(m,'a')}${slotRow(m,'b')}
     <div class="foot">
-      ${m.done ? `<button class="ghost" data-reopen>Buka semula</button>` : `<button class="save" data-save>Simpan & Tamat</button>`}
+      ${m.done ? `<button class="ghost" data-reopen>Buka semula</button>`
+               : `<button class="save" data-save>Simpan & Tamat</button>
+                  <button class="${m.live?'livebtn on':'livebtn'}" data-live>${m.live?'⏸ Henti':'▶ Mula'}</button>`}
       <button class="del" data-delmatch>Padam</button>
     </div><div class="msg"></div>
   </div>`;
@@ -411,7 +415,7 @@ function bindCards(root){
     });
 
     card.querySelector("[data-save]")?.addEventListener("click", async ()=>{
-      const patch={ done:true, played_at:new Date().toISOString() };
+      const patch={ done:true, live:false, played_at:new Date().toISOString() };
       // team slots: editable selects only
       for(const slot of ['a','b']){
         const sel=card.querySelector(`select[data-team="${slot}"]`);
@@ -450,6 +454,12 @@ function bindCards(root){
         }
       }
       await sb.from("matches").update({ done:false }).eq("id",mid); load();
+    });
+
+    card.querySelector("[data-live]")?.addEventListener("click", async ()=>{
+      const { error } = await sb.from("matches").update({ live: !m.live }).eq("id",mid);
+      if(error){ err(msg,"Gagal tukar status."); return; }
+      load();
     });
 
     card.querySelector("[data-delmatch]").onclick = async ()=>{
