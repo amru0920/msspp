@@ -193,7 +193,8 @@ function renderTabs(){
 }
 async function load(){
   const [{data:tm},{data:mt}]=await Promise.all([
-    sb.from("teams").select("*").eq("category_id",cat).order("name"),
+    sb.from("teams").select("*").eq("category_id",cat)
+      .order("group_label",{nullsFirst:false}).order("seed_no",{nullsFirst:false}).order("name"),
     sb.from("matches").select("*").eq("category_id",cat).order("id"),
   ]);
   teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
@@ -209,11 +210,12 @@ function renderGroups(){
   teamList.forEach(t=>{ if(t.group_label)(grouped[t.group_label]||=[]).push(t); });
   const labels=Object.keys(grouped).sort();
   if(!labels.length){ $("#v-groups").innerHTML=`<div class="empty">Pasukan belum ditetapkan kumpulan.</div>`; return; }
+  const bySeed=(a,b)=>((a.seed_no||99)-(b.seed_no||99))||a.name.localeCompare(b.name);
   $("#v-groups").innerHTML=`<div class="group-grid">${
     labels.map(g=>`<div class="grp-box">
       <div class="grp-hdr">KUMPULAN ${g}</div>
-      ${grouped[g].map((t,i)=>`<div class="grp-team">
-        <span class="grp-seed">${g}${i+1}</span>${t.name}
+      ${[...grouped[g]].sort(bySeed).map(t=>`<div class="grp-team">
+        <span class="grp-seed">${g}${t.seed_no||'?'}</span>${t.name}
       </div>`).join("")}
     </div>`).join("")
   }</div>`;

@@ -53,7 +53,8 @@
   .team-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--blueSoft)}
   .team-row:last-child{border-bottom:none}
   .team-row .name{flex:1;font-weight:600;font-size:14px}
-  .team-row select{width:86px;margin:0;padding:7px 8px;font-size:13px}
+  .team-row select{width:82px;margin:0;padding:7px 8px;font-size:13px}
+  .team-row select[data-seed]{width:64px}
   .mini{padding:8px 11px;font-size:12px}
   .hidden{display:none}
 
@@ -197,7 +198,8 @@ document.querySelectorAll(".mode button").forEach(b=>b.onclick=()=>{
 
 async function load(){
   const [{data:tm},{data:mt}] = await Promise.all([
-    sb.from("teams").select("*").eq("category_id",cat).order("name"),
+    sb.from("teams").select("*").eq("category_id",cat)
+      .order("group_label",{nullsFirst:false}).order("seed_no",{nullsFirst:false}).order("name"),
     sb.from("matches").select("*").eq("category_id",cat).order("match_no",{nullsFirst:false}).order("id"),
   ]);
   teamList=tm||[]; teams=Object.fromEntries(teamList.map(t=>[t.id,t])); matches=mt||[];
@@ -222,11 +224,12 @@ function renderGroupLayout(){
   teamList.forEach(t=>{ if(t.group_label)(grouped[t.group_label]||=[]).push(t); });
   const labels=GROUPS.filter(g=>grouped[g]?.length);
   if(!labels.length){ $("#groupLayout").innerHTML=`<div class="gbox-empty">Belum ada pasukan dalam kumpulan. Tambah pasukan di atas.</div>`; return; }
+  const bySeed=(a,b)=>((a.seed_no||99)-(b.seed_no||99))||a.name.localeCompare(b.name);
   $("#groupLayout").innerHTML = `<div class="glayout">${
     labels.map(g=>`<div class="gbox">
       <div class="gbox-h">KUMPULAN ${g}</div>
-      ${grouped[g].map((t,i)=>`<div class="gbox-r">
-        <span class="gbox-seed">${g}${i+1}</span>${t.name}
+      ${[...grouped[g]].sort(bySeed).map(t=>`<div class="gbox-r">
+        <span class="gbox-seed">${g}${t.seed_no||'?'}</span>${t.name}
       </div>`).join("")}
     </div>`).join("")
   }</div>`;
@@ -283,11 +286,16 @@ function renderTeams(){
       <span class="name">${t.name}</span>
       <select data-grp>${GROUPS.map(g=>`<option value="${g}" ${t.group_label===g?'selected':''}>Kump ${g}</option>`).join("")}
         <option value="" ${!t.group_label?'selected':''}>Tiada</option></select>
+      <select data-seed title="Nombor dalam kumpulan">
+        ${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${t.seed_no===n?'selected':''}>${t.group_label||''}${n}</option>`).join("")}
+        <option value="" ${!t.seed_no?'selected':''}>—</option>
+      </select>
       <button class="del mini" data-delteam>✕</button>
     </div>`).join("") || `<div class="sub">Belum ada pasukan — tambah di atas.</div>`;
   $("#teamList").querySelectorAll(".team-row").forEach(r=>{
     const tid=+r.dataset.tid;
     r.querySelector("[data-grp]").onchange = async e => { await sb.from("teams").update({group_label:e.target.value||null}).eq("id",tid); load(); };
+    r.querySelector("[data-seed]").onchange = async e => { await sb.from("teams").update({seed_no:e.target.value?+e.target.value:null}).eq("id",tid); load(); };
     r.querySelector("[data-delteam]").onclick = async () => {
       if(!confirm("Padam pasukan ini?")) return;
       await sb.from("matches").update({team_a_id:null}).eq("team_a_id",tid);
