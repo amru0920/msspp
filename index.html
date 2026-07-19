@@ -155,6 +155,22 @@
   tr.is-done .c-team{color:var(--muted)}
   tr.is-done .c-team.won{color:var(--blueDark);font-weight:700}
   .sched-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
+
+  /* Tab badges + date bar */
+  .tab.has-live{border-color:#F5C2CB;background:#FFF1F3}
+  .tb-live{display:inline-flex;align-items:center;gap:4px;font-family:Archivo;font-weight:800;
+    font-size:8.5px;letter-spacing:.06em;background:#E11D48;color:#fff;
+    padding:2px 6px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .tb-dot{width:4px;height:4px;border-radius:50%;background:#fff;animation:blink 1.2s infinite}
+  .tb-today{font-family:Archivo;font-weight:800;font-size:8.5px;letter-spacing:.06em;
+    background:var(--blueDark);color:#fff;padding:2px 6px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .tb-done{font-family:Archivo;font-weight:800;font-size:8.5px;letter-spacing:.06em;
+    background:#E4E9F1;color:var(--muted);padding:2px 6px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .date-bar{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:9px 14px;font-size:12.5px;color:var(--muted);margin-bottom:8px;font-weight:500}
+  .date-bar.on{background:#FFF1F3;border-color:#F5C2CB;color:var(--ink)}
+  .dbt{font-family:Archivo;font-weight:800;font-size:9px;letter-spacing:.06em;
+    background:#E11D48;color:#fff;padding:2px 7px;border-radius:999px;margin-left:6px}
   .hidden{display:none}
   footer{color:var(--muted);font-size:11px;text-align:center;margin-top:28px}
 </style>
@@ -203,7 +219,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 const $ = s => document.querySelector(s);
 const ROUND = {qf:"Suku Akhir",sf:"Separuh Akhir",third:"Tempat Ke-3",final:"Akhir"};
 
-let cats=[], cat=null, teams={}, teamList=[], matches=[];
+let cats=[], cat=null, teams={}, teamList=[], matches=[], allMatches=[];
 
 // ── view switching ──
 document.querySelectorAll(".views .tab").forEach(el=>el.onclick=()=>{
@@ -216,12 +232,42 @@ document.querySelectorAll(".views .tab").forEach(el=>el.onclick=()=>{
 // ── boot ──
 async function boot(){
   const { data } = await sb.from("categories").select("*").order("sort_order");
-  cats=data||[]; if(cats.length) cat=cats[0].id;
+  cats=data||[];
+  await loadAll();
+  // Auto-pilih kategori yang berlangsung hari ini
+  const today=todayStr();
+  const running = cats.find(c=>c.event_date===today);
+  if(!cat) cat = (running||cats[0])?.id || null;
   renderTabs(); if(cat) load();
 }
+
+// Data ringan untuk semua kategori — untuk penanda pada tab
+async function loadAll(){
+  const { data } = await sb.from("matches")
+    .select("id,category_id,match_no,match_time,done,live");
+  allMatches = data||[];
+}
+
+// Status setiap kategori: berlangsung hari ini? ada perlawanan sedang bermain?
+function catStatus(c){
+  const today = todayStr();
+  const isToday = c.event_date===today;
+  const list = allMatches.filter(m=>m.category_id===c.id)
+    .sort((a,b)=>((a.match_no||9999)-(b.match_no||9999))||(a.id-b.id));
+  const liveCount = computeLive(list, c.event_date).size;
+  const allDone = list.length>0 && list.every(m=>m.done);
+  return { isToday, liveCount, allDone };
+}
+
 function renderTabs(){
-  $("#tabs").innerHTML=cats.map(c=>
-    `<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}</div>`).join("");
+  $("#tabs").innerHTML=cats.map(c=>{
+    const s=catStatus(c);
+    let badge="";
+    if(s.liveCount)      badge=`<span class="tb-live"><span class="tb-dot"></span>LANGSUNG</span>`;
+    else if(s.isToday)   badge=`<span class="tb-today">HARI INI</span>`;
+    else if(s.allDone)   badge=`<span class="tb-done">TAMAT</span>`;
+    return `<div class="tab ${c.id===cat?'on':''} ${s.liveCount?'has-live':''}" data-id="${c.id}">${c.name}${badge}</div>`;
+  }).join("");
   $("#tabs").querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cat=+el.dataset.id;renderTabs();load();});
 }
 async function load(){
@@ -272,23 +318,38 @@ function parseTime(t){
   if(isNaN(hh)||isNaN(mm)||hh>23||mm>59) return null;
   const d=new Date(); d.setHours(hh,mm,0,0); return d;
 }
+const todayStr = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD tempatan
+
+// Perlawanan yang "sedang bermain".
+// Auto ikut jam HANYA pada tarikh kategori itu. Penanda manual (live) sentiasa berkuat kuasa.
+function computeLive(list, eventDate){
+  const dateOk = !eventDate || eventDate===todayStr();
+  const now=new Date();
+  const starts=list.map(m=>parseTime(m.match_time));
+  const set=new Set();
+  list.forEach((m,i)=>{
+    if(m.done) return;
+    if(m.live){ set.add(m.id); return; }
+    if(!dateOk) return;
+    const start=starts[i]; if(!start) return;
+    let end=null;
+    for(let j=i+1;j<list.length;j++){ if(starts[j]){ end=starts[j]; break; } }
+    if(!end) end=new Date(start.getTime()+30*60000);
+    if(now>=start && now<end) set.add(m.id);
+  });
+  return set;
+}
 
 function renderSchedule(){
   const bySched=(a,b)=>((a.match_no||9999)-(b.match_no||9999))||(a.id-b.id);
   const list=[...matches].sort(bySched);
   if(!list.length){ $("#v-schedule").innerHTML=`<div class="empty">Jadual belum dimasukkan.</div>`; return; }
 
-  const now=new Date();
-  const starts=list.map(m=>parseTime(m.match_time));
+  const c = cats.find(x=>x.id===cat);
+  const liveSet = computeLive(list, c?.event_date);
 
-  const rows=list.map((m,i)=>{
-    // tingkap masa: dari masa mula hingga masa perlawanan berikutnya (atau +30 min)
-    const start=starts[i];
-    let end=null;
-    for(let j=i+1;j<list.length;j++){ if(starts[j]){ end=starts[j]; break; } }
-    if(start && !end) end=new Date(start.getTime()+30*60000);
-    const inWindow = start && now>=start && now<end;
-    const isLive = !m.done && (m.live || inWindow);
+  const rows=list.map(m=>{
+    const isLive = liveSet.has(m.id);
 
     const aName=nm(m.team_a_id), bName=nm(m.team_b_id);
     const aW=m.done&&m.score_a>m.score_b, bW=m.done&&m.score_b>m.score_a;
@@ -318,7 +379,16 @@ function renderSchedule(){
     </tr>`;
   }).join("");
 
-  $("#v-schedule").innerHTML=`
+  const dateLine = c?.event_date
+    ? (()=> {
+        const d=new Date(c.event_date+"T00:00:00");
+        const txt=d.toLocaleDateString('ms-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        const isToday = c.event_date===todayStr();
+        return `<div class="date-bar ${isToday?'on':''}">📅 ${txt}${isToday?' <span class="dbt">HARI INI</span>':''}</div>`;
+      })()
+    : "";
+
+  $("#v-schedule").innerHTML=`${dateLine}
     <div class="sched-wrap"><table class="sched">
       <thead><tr>
         <th>BIL</th><th>MASA</th><th>KUMP</th>
@@ -531,9 +601,9 @@ function bmCard(m,isFinal=false){
 
 boot();
 
-// Auto-segar: ambil data baru setiap 45s, kemas status "sedang bermain" setiap 20s
-setInterval(()=>{ if(cat) load(); }, 45000);
-setInterval(()=>{ if(cat) renderSchedule(); }, 20000);
+// Auto-segar: data setiap 45s, status "sedang bermain" setiap 20s
+setInterval(async ()=>{ if(cat){ await loadAll(); renderTabs(); load(); } }, 45000);
+setInterval(()=>{ if(cat){ renderTabs(); renderSchedule(); } }, 20000);
 
 // ── 5-tap logo → admin (easter egg) ──
 (function(){

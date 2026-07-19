@@ -85,6 +85,10 @@
   .ico.lv{color:#E11D48;border-color:#F5C2CB}
   .ico.lv.on{background:#E11D48;color:#fff;border-color:#E11D48}
   .vs-lbl{color:var(--muted);font-size:11px}
+  .danger-zone{border-left:4px solid var(--danger);margin-top:14px}
+  .danger-zone h3{color:var(--danger)}
+  .today-dot{font-family:Archivo;font-weight:800;font-size:8.5px;letter-spacing:.06em;
+    background:#E11D48;color:#fff;padding:2px 6px;border-radius:999px;margin-left:5px;vertical-align:middle}
 
   /* Category banner + group layout (Setup) */
   .cat-banner{display:flex;align-items:center;gap:8px;background:var(--yellow);
@@ -128,6 +132,13 @@
     <!-- SETUP -->
     <div id="m-setup">
       <div class="cat-banner" id="catBanner"></div>
+
+      <div class="card form">
+        <h3>📅 Tarikh Pertandingan Kategori Ini</h3>
+        <div class="hint">Status <b>SEDANG BERMAIN</b> automatik hanya aktif pada tarikh ini. Tab kategori juga akan bertanda <b>HARI INI</b> untuk penonton.</div>
+        <input type="date" id="catDate">
+        <div class="msg" id="cd-msg"></div>
+      </div>
       <div class="card form">
         <h3>Tambah Pasukan</h3>
         <div class="grid2">
@@ -196,6 +207,14 @@
         <div class="msg" id="sc-msg"></div>
       </div>
       <div class="sched-edit-wrap" id="schedTable"></div>
+
+      <div class="card danger-zone">
+        <h3>⚠️ Zon Reset</h3>
+        <div class="hint">Untuk kategori <b id="rzCat">—</b> sahaja. Kategori lain tak terjejas.</div>
+        <button class="del" id="btnResetScores" style="width:100%;margin-top:4px">🧹 Reset Semua Skor (pasukan & jadual kekal)</button>
+        <button class="del" id="btnResetKO" style="width:100%;margin-top:8px">🧹 Reset Pasukan Kalah Mati (SF · Akhir · Tempat Ke-3)</button>
+        <div class="msg" id="rz-msg"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -228,7 +247,11 @@ async function boot(){
   tabs(); if(cat) load();
 }
 function tabs(){
-  $("#tabs").innerHTML = cats.map(c=>`<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}</div>`).join("");
+  const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD tempatan
+  $("#tabs").innerHTML = cats.map(c=>{
+    const isToday = c.event_date===today;
+    return `<div class="tab ${c.id===cat?'on':''}" data-id="${c.id}">${c.name}${isToday?' <span class="today-dot">HARI INI</span>':''}</div>`;
+  }).join("");
   $("#tabs").querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cat=+el.dataset.id;tabs();load();});
 }
 document.querySelectorAll(".mode button").forEach(b=>b.onclick=()=>{
@@ -257,6 +280,8 @@ function renderCatBanner(){
   $("#catBanner").innerHTML = c
     ? `📋 Sedang urus: ${c.name} <small>· ${teamList.length} pasukan · setiap kategori berasingan</small>`
     : "";
+  const rz=$("#rzCat"); if(rz) rz.textContent = c?c.name:"—";
+  const cd=$("#catDate"); if(cd) cd.value = c?.event_date || "";
 }
 
 // Visual group layout (macam jadual rasmi: A1, A2… B1, B2…)
@@ -686,6 +711,44 @@ $("#btnSyncKump").onclick = async () => {
   }
   note("#sc-msg", `${fixed} dibetulkan${mismatch?` · ${mismatch} silang kumpulan (⚠)`:''} ✓`, mismatch?1:0);
   load();
+};
+
+// ---------- Zon Reset ----------
+// Reset skor sahaja: pasukan, BIL, MASA semua kekal.
+$("#btnResetScores").onclick = async () => {
+  const n = matches.filter(m=>m.done||m.score_a!=null||m.score_b!=null).length;
+  if(!n){ note("#rz-msg","Tiada skor untuk direset.",1); return; }
+  const c = cats.find(x=>x.id===cat)?.name || "kategori ini";
+  if(!confirm(`Reset skor ${n} perlawanan untuk ${c}?\n\nPasukan, BIL dan MASA akan KEKAL.\nTindakan ini tidak boleh dibatalkan.`)) return;
+  const { error } = await sb.from("matches")
+    .update({ score_a:null, score_b:null, done:false, live:false, played_at:null })
+    .eq("category_id",cat);
+  if(error){ note("#rz-msg","Gagal reset: "+error.message,1); return; }
+  note("#rz-msg",`Skor ${n} perlawanan direset ✓`); load();
+};
+
+// Reset pasukan kalah mati: kosongkan SF / Akhir / Tempat Ke-3 (+ QF kalau ada).
+$("#btnResetKO").onclick = async () => {
+  const ko = matches.filter(m=>m.round!=='group');
+  if(!ko.length){ note("#rz-msg","Tiada perlawanan kalah mati.",1); return; }
+  const c = cats.find(x=>x.id===cat)?.name || "kategori ini";
+  if(!confirm(`Kosongkan pasukan & skor untuk ${ko.length} perlawanan kalah mati (${c})?\n\nStruktur bracket dan pautan auto-naik akan KEKAL — hanya nama pasukan dan skor dibuang.`)) return;
+  const { error } = await sb.from("matches")
+    .update({ team_a_id:null, team_b_id:null, score_a:null, score_b:null, done:false, live:false, played_at:null })
+    .eq("category_id",cat).neq("round","group");
+  if(error){ note("#rz-msg","Gagal reset: "+error.message,1); return; }
+  note("#rz-msg",`${ko.length} perlawanan kalah mati dikosongkan ✓`); load();
+};
+
+// Tarikh pertandingan kategori
+$("#catDate").onchange = async (e) => {
+  const val = e.target.value || null;
+  const { error } = await sb.from("categories").update({ event_date: val }).eq("id",cat);
+  if(error){ note("#cd-msg","Gagal simpan: "+error.message,1); return; }
+  const { data } = await sb.from("categories").select("*").order("sort_order");
+  cats = data||[];
+  note("#cd-msg", val?"Tarikh disimpan ✓":"Tarikh dikosongkan ✓");
+  tabs(); renderCatBanner();
 };
 
 boot();
