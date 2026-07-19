@@ -136,12 +136,30 @@
   table.sched .c-kump{width:42px}
   .kump-tag{font-family:Archivo;font-weight:800;font-size:10.5px;background:var(--blueSoft);
     color:var(--blueDark);padding:3px 7px;border-radius:5px}
-  table.sched .c-team{text-align:left;font-weight:600;min-width:130px}
-  table.sched .c-team.right{text-align:right}
-  .seed-tag{font-family:Archivo;font-weight:800;font-size:9.5px;color:var(--muted);
-    background:#EEF2F8;padding:2px 5px;border-radius:4px;margin:0 5px}
+  table.sched .c-team{text-align:left;font-weight:600;min-width:118px}
+  .tcell{display:flex;align-items:center;gap:6px;min-width:0}
+  .tcell.right{justify-content:flex-end;text-align:right}
+  .tcell .tn{min-width:0;line-height:1.28;overflow-wrap:anywhere}
+  .seed-tag{flex:0 0 auto;font-family:Archivo;font-weight:800;font-size:9.5px;color:var(--muted);
+    background:#EEF2F8;padding:2px 5px;border-radius:4px;margin:0}
   .team-ph{color:var(--muted);font-style:italic;font-weight:400}
   .c-vs{color:var(--muted);font-size:11px;width:24px}
+
+  /* Skrin kecil — rapatkan supaya muat */
+  @media (max-width:520px){
+    table.sched{min-width:0;width:100%}
+    table.sched thead th{font-size:9.5px;padding:8px 4px}
+    table.sched td{padding:8px 4px;font-size:12px}
+    table.sched .c-team{min-width:96px}
+    .tcell{gap:4px}
+    .seed-tag{font-size:8.5px;padding:2px 4px}
+    .c-vs{width:16px;font-size:9.5px}
+    table.sched .c-bil{width:26px}
+    table.sched .c-time{width:46px;font-size:11px}
+    table.sched .c-res{width:80px}
+    .res-score{font-size:13px}
+    .badge-live{font-size:8px;padding:3px 6px}
+  }
   table.sched .c-res{width:104px;white-space:nowrap}
   .res-score{font-family:Archivo;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;color:var(--blueDark)}
   .res-none{color:var(--muted);font-size:12px}
@@ -355,11 +373,12 @@ function renderSchedule(){
     const aW=m.done&&m.score_a>m.score_b, bW=m.done&&m.score_b>m.score_a;
 
     const teamCell=(name,ph,seed,won,right)=>{
-      const label = name ? name : `<span class="team-ph">${ph}</span>`;
+      const label = name
+        ? `<span class="tn">${name}</span>`
+        : `<span class="tn team-ph">${ph}</span>`;
       const sd = seed?`<span class="seed-tag">${seed}</span>`:'';
-      return right
-        ? `<td class="c-team right ${won?'won':''}">${label}${sd}</td>`
-        : `<td class="c-team ${won?'won':''}">${sd}${label}</td>`;
+      return `<td class="c-team ${won?'won':''}">
+        <div class="tcell ${right?'right':''}">${right?label+sd:sd+label}</div></td>`;
     };
 
     const result = m.done
