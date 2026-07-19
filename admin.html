@@ -60,6 +60,32 @@
   .mini{padding:8px 11px;font-size:12px}
   .hidden{display:none}
 
+  /* Editable schedule table */
+  .sched-edit-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  table.sed{border-collapse:collapse;width:100%;min-width:640px}
+  table.sed thead th{background:var(--blue);color:#fff;font-family:Archivo;font-weight:700;
+    font-size:10.5px;letter-spacing:.06em;padding:9px 6px;text-align:center;white-space:nowrap}
+  table.sed td{border-bottom:1px solid var(--blueSoft);padding:5px 6px;text-align:center;vertical-align:middle}
+  table.sed tr:last-child td{border-bottom:none}
+  table.sed tr.done-row td{background:#F5F9F5}
+  table.sed input,table.sed select{margin:0;padding:7px 8px;font-size:12.5px;border-radius:7px}
+  .in-bil{width:52px;text-align:center;font-family:Archivo;font-weight:800}
+  .in-time{width:66px;text-align:center;font-family:Archivo;font-weight:700}
+  .in-team{width:100%;min-width:132px}
+  .kumptag{font-family:Archivo;font-weight:800;font-size:10.5px;background:var(--blueSoft);
+    color:var(--blueDark);padding:4px 8px;border-radius:5px;white-space:nowrap}
+  .lockcell{font-size:12.5px;color:var(--muted);font-style:italic;padding:0 6px}
+  .sc-score{display:flex;gap:4px;align-items:center;justify-content:center}
+  .sc-score input{width:42px;text-align:center;font-family:Archivo;font-weight:800;font-size:14px}
+  .sc-final{font-family:Archivo;font-weight:800;font-size:14px;color:var(--win);white-space:nowrap}
+  .sed-act{display:flex;gap:4px;justify-content:center}
+  .ico{padding:7px 9px;font-size:12px;background:#fff;border:1px solid var(--line);color:var(--muted)}
+  .ico.go{color:var(--win);border-color:#BFE0CC}
+  .ico.rm{color:var(--danger)}
+  .ico.lv{color:#E11D48;border-color:#F5C2CB}
+  .ico.lv.on{background:#E11D48;color:#fff;border-color:#E11D48}
+  .vs-lbl{color:var(--muted);font-size:11px}
+
   /* Category banner + group layout (Setup) */
   .cat-banner{display:flex;align-items:center;gap:8px;background:var(--yellow);
     color:var(--blueDark);font-family:Archivo;font-weight:800;font-size:14px;
@@ -96,6 +122,7 @@
       <button class="on" data-mode="setup">1 · Setup</button>
       <button data-mode="group">2 · Kumpulan</button>
       <button data-mode="ko">3 · Kalah Mati</button>
+      <button data-mode="sched">4 · Jadual</button>
     </div>
 
     <!-- SETUP -->
@@ -158,6 +185,17 @@
       </div>
       <div id="koMatches"></div>
     </div>
+
+    <!-- SCHEDULE (editable table) -->
+    <div id="m-sched" class="hidden">
+      <div class="card form">
+        <h3>📋 Jadual Penuh — Boleh Edit</h3>
+        <div class="hint">Semua perlawanan dalam satu jadual. Ubah <b>BIL</b>, <b>MASA</b> atau pasukan terus di dalam petak — auto simpan. Susunan ikut BIL, sama macam jadual rasmi.</div>
+        <button class="btn" id="btnRenumber">🔢 Nomborkan Semula BIL (1,2,3…) ikut susunan sekarang</button>
+        <div class="msg" id="sc-msg"></div>
+      </div>
+      <div class="sched-edit-wrap" id="schedTable"></div>
+    </div>
   </div>
 </div>
 
@@ -195,7 +233,7 @@ function tabs(){
 document.querySelectorAll(".mode button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".mode button").forEach(x=>x.classList.remove("on"));
   b.classList.add("on");
-  ["setup","group","ko"].forEach(m=>$("#m-"+m).classList.toggle("hidden", m!==b.dataset.mode));
+  ["setup","group","ko","sched"].forEach(m=>$("#m-"+m).classList.toggle("hidden", m!==b.dataset.mode));
 });
 
 async function load(){
@@ -208,7 +246,7 @@ async function load(){
   $("#nt-group").innerHTML = GROUPS.map(g=>`<option value="${g}">Kumpulan ${g}</option>`).join("");
   fillManualForm();
   renderCatBanner(); renderGroupLayout();
-  renderTeams(); renderGroup(); renderKO();
+  renderTeams(); renderGroup(); renderKO(); renderSchedTable();
 }
 const nm = id => teams[id]?.name || null;
 
@@ -358,8 +396,7 @@ function renderKO(){
   bindCards("#koMatches");
 }
 
-// ---------- shared match card ----------
-// First KO round (no incoming feed) = editable dropdown. Fed slots = locked (auto).
+// ---------- shared match card ----------// First KO round (no incoming feed) = editable dropdown. Fed slots = locked (auto).
 function isFed(m, slot){
   return matches.some(x => (x.next_match_id===m.id && x.next_slot===slot) || (x.loser_next_match_id===m.id && x.loser_next_slot===slot));
 }
@@ -471,6 +508,149 @@ function bindCards(root){
 
 function note(sel,txt,isErr){ const el=$(sel); el.textContent=txt; el.style.color=isErr?"var(--danger)":"var(--win)"; setTimeout(()=>el.textContent="",2600); }
 function err(el,txt){ el.textContent=txt; el.style.color="var(--danger)"; }
+
+// ════════════════════════════════════════
+// JADUAL PENUH — jadual boleh edit
+// ════════════════════════════════════════
+const KUMP_TAG = m =>
+  m.round==='group' ? (m.group_label||'-') :
+  m.round==='qf'    ? 'QF'+(m.bracket_pos||'') :
+  m.round==='sf'    ? 'SF'+(m.bracket_pos||'') :
+  m.round==='final' ? 'F'  :
+  m.round==='third' ? '3RD': '-';
+
+function phLabel(m,slot){
+  if(m.round==='sf'){
+    if(m.bracket_pos===1) return slot==='a'?'JOHAN A':'NAIB JOHAN B';
+    if(m.bracket_pos===2) return slot==='a'?'JOHAN B':'NAIB JOHAN A';
+  }
+  if(m.round==='final') return slot==='a'?'MENANG SF1':'MENANG SF2';
+  if(m.round==='third') return slot==='a'?'KALAH SF1':'KALAH SF2';
+  return 'Menunggu';
+}
+const bySched=(a,b)=>((a.match_no||9999)-(b.match_no||9999))||(a.id-b.id);
+
+function renderSchedTable(){
+  const list=[...matches].sort(bySched);
+  if(!list.length){ $("#schedTable").innerHTML=`<div class="sub" style="padding:16px">Tiada perlawanan. Tambah di tab Kumpulan atau Kalah Mati.</div>`; return; }
+
+  const teamOpts=(sel)=>teamList.map(t=>
+    `<option value="${t.id}" ${t.id===sel?'selected':''}>${t.name}${t.group_label?` (${t.group_label}${t.seed_no||''})`:''}</option>`).join("");
+
+  const rows=list.map(m=>{
+    const fedA=m.round!=='group'&&isFed(m,'a');
+    const fedB=m.round!=='group'&&isFed(m,'b');
+    const cell=(slot,fed)=>{
+      const id=slot==='a'?m.team_a_id:m.team_b_id;
+      if(fed) return `<span class="lockcell">${nm(id)||phLabel(m,slot)}</span>`;
+      return `<select class="in-team" data-t="${slot}" ${m.done?'disabled':''}>
+        <option value="">— ${phLabel(m,slot)} —</option>${teamOpts(id)}</select>`;
+    };
+    const score = m.done
+      ? `<span class="sc-final">${m.score_a} – ${m.score_b}</span>`
+      : `<div class="sc-score">
+           <input type="number" min="0" data-s="a" value="${m.score_a??''}" placeholder="0">
+           <span class="vs-lbl">:</span>
+           <input type="number" min="0" data-s="b" value="${m.score_b??''}" placeholder="0">
+         </div>`;
+    const act = m.done
+      ? `<button class="ico" data-reopen title="Buka semula">↺</button>`
+      : `<button class="ico go" data-save title="Simpan & Tamat">✓</button>
+         <button class="ico lv ${m.live?'on':''}" data-live title="Sedang bermain">▶</button>`;
+
+    return `<tr data-mid="${m.id}" class="${m.done?'done-row':''}">
+      <td><input class="in-bil" type="number" min="1" data-f="match_no" value="${m.match_no??''}" placeholder="—"></td>
+      <td><input class="in-time" data-f="match_time" value="${m.match_time??''}" placeholder="0830"></td>
+      <td><span class="kumptag">${KUMP_TAG(m)}</span></td>
+      <td>${cell('a',fedA)}</td>
+      <td class="vs-lbl">lwn</td>
+      <td>${cell('b',fedB)}</td>
+      <td>${score}</td>
+      <td><div class="sed-act">${act}<button class="ico rm" data-del title="Padam">✕</button></div></td>
+    </tr>`;
+  }).join("");
+
+  $("#schedTable").innerHTML=`<table class="sed">
+    <thead><tr><th>BIL</th><th>MASA</th><th>KUMP</th>
+      <th colspan="3">PERLAWANAN</th><th>SKOR</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+  bindSchedTable();
+}
+
+function bindSchedTable(){
+  document.querySelectorAll("#schedTable tr[data-mid]").forEach(tr=>{
+    const mid=+tr.dataset.mid;
+    const m=matches.find(x=>x.id===mid);
+
+    // BIL / MASA — auto simpan
+    tr.querySelectorAll("[data-f]").forEach(inp=>{
+      inp.addEventListener("change", async ()=>{
+        const f=inp.dataset.f;
+        const val = f==='match_no' ? (inp.value?+inp.value:null) : (inp.value.trim()||null);
+        const { error } = await sb.from("matches").update({ [f]: val }).eq("id",mid);
+        if(error){ note("#sc-msg","Gagal simpan.",1); return; }
+        m[f]=val; note("#sc-msg","Disimpan ✓");
+        if(f==='match_no') renderSchedTable();
+      });
+    });
+
+    // Pasukan — auto simpan
+    tr.querySelectorAll("select[data-t]").forEach(sel=>{
+      sel.addEventListener("change", async ()=>{
+        const slot=sel.dataset.t, col=slot==='a'?'team_a_id':'team_b_id';
+        const other=slot==='a'?m.team_b_id:m.team_a_id;
+        const val=sel.value?+sel.value:null;
+        if(val&&val===other){ note("#sc-msg","Pasukan A & B sama.",1); sel.value=""; return; }
+        const { error } = await sb.from("matches").update({ [col]: val }).eq("id",mid);
+        if(error){ note("#sc-msg","Gagal simpan.",1); return; }
+        m[col]=val; note("#sc-msg","Pasukan disimpan ✓");
+      });
+    });
+
+    tr.querySelector("[data-save]")?.addEventListener("click", async ()=>{
+      const a=m.team_a_id, b=m.team_b_id;
+      if(!a||!b){ note("#sc-msg","Pasukan belum lengkap.",1); return; }
+      const sa=tr.querySelector('[data-s="a"]').value, sb_=tr.querySelector('[data-s="b"]').value;
+      if(sa===""||sb_===""){ note("#sc-msg","Isi kedua-dua skor.",1); return; }
+      if(m.round!=='group'&&+sa===+sb_){ note("#sc-msg","Kalah mati tak boleh seri.",1); return; }
+      const { error } = await sb.from("matches")
+        .update({ score_a:+sa, score_b:+sb_, done:true, live:false, played_at:new Date().toISOString() }).eq("id",mid);
+      if(error){ note("#sc-msg","Gagal simpan.",1); return; }
+      if(m.round!=='group'){
+        const win = +sa>+sb_?a:b, lose = +sa>+sb_?b:a;
+        if(m.next_match_id)       await sb.from("matches").update({ [m.next_slot==='a'?'team_a_id':'team_b_id']:win  }).eq("id",m.next_match_id);
+        if(m.loser_next_match_id) await sb.from("matches").update({ [m.loser_next_slot==='a'?'team_a_id':'team_b_id']:lose }).eq("id",m.loser_next_match_id);
+      }
+      note("#sc-msg","Keputusan disimpan ✓"); load();
+    });
+
+    tr.querySelector("[data-live]")?.addEventListener("click", async ()=>{
+      await sb.from("matches").update({ live: !m.live }).eq("id",mid); load();
+    });
+    tr.querySelector("[data-reopen]")?.addEventListener("click", async ()=>{
+      for(const [id2,slot] of [[m.next_match_id,m.next_slot],[m.loser_next_match_id,m.loser_next_slot]]){
+        if(!id2) continue;
+        const d=matches.find(x=>x.id===id2);
+        if(d&&d.done){ note("#sc-msg","Perlawanan seterusnya dah tamat — buka yang itu dulu.",1); return; }
+        await sb.from("matches").update({ [slot==='a'?'team_a_id':'team_b_id']:null }).eq("id",id2);
+      }
+      await sb.from("matches").update({ done:false }).eq("id",mid); load();
+    });
+    tr.querySelector("[data-del]").addEventListener("click", async ()=>{
+      if(!confirm("Padam perlawanan ini?")) return;
+      await sb.from("matches").delete().eq("id",mid); load();
+    });
+  });
+}
+
+// Nomborkan semula BIL ikut susunan paparan sekarang
+$("#btnRenumber").onclick = async () => {
+  const list=[...matches].sort(bySched);
+  if(!list.length){ note("#sc-msg","Tiada perlawanan.",1); return; }
+  if(!confirm(`Tetapkan BIL 1 hingga ${list.length} ikut susunan sekarang?`)) return;
+  for(let i=0;i<list.length;i++) await sb.from("matches").update({ match_no:i+1 }).eq("id",list[i].id);
+  note("#sc-msg","BIL dinomborkan semula ✓"); load();
+};
 
 boot();
 </script>
