@@ -238,12 +238,15 @@ const nm=id=>teams[id]?.name||null;
 // ════════════════════════════════════════
 // 0. JADUAL — macam jadual rasmi
 // ════════════════════════════════════════
-const KUMP_TAG = m =>
-  m.round==='group' ? (m.group_label||'-') :
-  m.round==='qf'    ? 'QF'+(m.bracket_pos||'') :
-  m.round==='sf'    ? 'SF'+(m.bracket_pos||'') :
-  m.round==='final' ? 'F'  :
-  m.round==='third' ? '3RD': '-';
+const KUMP_TAG = m => {
+  if(m.round==='qf')    return 'QF'+(m.bracket_pos||'');
+  if(m.round==='sf')    return 'SF'+(m.bracket_pos||'');
+  if(m.round==='final') return 'F';
+  if(m.round==='third') return '3RD';
+  const ga=teams[m.team_a_id]?.group_label, gb=teams[m.team_b_id]?.group_label;
+  if(ga&&gb&&ga===gb) return ga;
+  return ga||gb||m.group_label||'-';
+};
 
 // Label sementara bila pasukan belum ditetapkan (ikut jadual rasmi)
 function placeholder(m,slot){

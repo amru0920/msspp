@@ -192,6 +192,7 @@
         <h3>📋 Jadual Penuh — Boleh Edit</h3>
         <div class="hint">Semua perlawanan dalam satu jadual. Ubah <b>BIL</b>, <b>MASA</b> atau pasukan terus di dalam petak — auto simpan. Susunan ikut BIL, sama macam jadual rasmi.</div>
         <button class="btn" id="btnRenumber">🔢 Nomborkan Semula BIL (1,2,3…) ikut susunan sekarang</button>
+        <button class="btn yellow" id="btnSyncKump">🔄 Betulkan KUMP Ikut Pasukan</button>
         <div class="msg" id="sc-msg"></div>
       </div>
       <div class="sched-edit-wrap" id="schedTable"></div>
@@ -512,13 +513,16 @@ function err(el,txt){ el.textContent=txt; el.style.color="var(--danger)"; }
 // ════════════════════════════════════════
 // JADUAL PENUH — jadual boleh edit
 // ════════════════════════════════════════
-const KUMP_TAG = m =>
-  m.round==='group' ? (m.group_label||'-') :
-  m.round==='qf'    ? 'QF'+(m.bracket_pos||'') :
-  m.round==='sf'    ? 'SF'+(m.bracket_pos||'') :
-  m.round==='final' ? 'F'  :
-  m.round==='third' ? '3RD': '-';
-
+// KUMP ikut pasukan sebenar (bukan label lama yang tersimpan)
+const KUMP_TAG = m => {
+  if(m.round==='qf')    return 'QF'+(m.bracket_pos||'');
+  if(m.round==='sf')    return 'SF'+(m.bracket_pos||'');
+  if(m.round==='final') return 'F';
+  if(m.round==='third') return '3RD';
+  const ga=teams[m.team_a_id]?.group_label, gb=teams[m.team_b_id]?.group_label;
+  if(ga&&gb) return ga===gb ? ga : `${ga}/${gb}⚠`;
+  return ga||gb||'-';
+};
 function phLabel(m,slot){
   if(m.round==='sf'){
     if(m.bracket_pos===1) return slot==='a'?'JOHAN A':'NAIB JOHAN B';
@@ -526,7 +530,7 @@ function phLabel(m,slot){
   }
   if(m.round==='final') return slot==='a'?'MENANG SF1':'MENANG SF2';
   if(m.round==='third') return slot==='a'?'KALAH SF1':'KALAH SF2';
-  return 'Menunggu';
+  return 'Pilih pasukan';
 }
 const bySched=(a,b)=>((a.match_no||9999)-(b.match_no||9999))||(a.id-b.id);
 
@@ -597,13 +601,30 @@ function bindSchedTable(){
     // Pasukan — auto simpan
     tr.querySelectorAll("select[data-t]").forEach(sel=>{
       sel.addEventListener("change", async ()=>{
-        const slot=sel.dataset.t, col=slot==='a'?'team_a_id':'team_b_id';
-        const other=slot==='a'?m.team_b_id:m.team_a_id;
-        const val=sel.value?+sel.value:null;
-        if(val&&val===other){ note("#sc-msg","Pasukan A & B sama.",1); sel.value=""; return; }
-        const { error } = await sb.from("matches").update({ [col]: val }).eq("id",mid);
-        if(error){ note("#sc-msg","Gagal simpan.",1); return; }
-        m[col]=val; note("#sc-msg","Pasukan disimpan ✓");
+        const slot=sel.dataset.t;
+        const col   = slot==='a'?'team_a_id':'team_b_id';
+        const oCol  = slot==='a'?'team_b_id':'team_a_id';
+        const val   = sel.value?+sel.value:null;
+        const patch = { [col]: val };
+
+        // Kalau pasukan sama dengan slot sebelah, kosongkan slot sebelah (bukan tolak pilihan)
+        if(val && val===m[oCol]){
+          patch[oCol]=null;
+          note("#sc-msg","Pasukan sama — slot sebelah dikosongkan.",1);
+        }
+
+        // KUMP ikut pasukan: kemas kini group_label bila kedua-dua dalam kumpulan sama
+        if(m.round==='group'){
+          const ga=teams[patch.team_a_id??m.team_a_id]?.group_label;
+          const gb=teams[patch.team_b_id!==undefined?patch.team_b_id:m.team_b_id]?.group_label;
+          if(ga&&ga===gb) patch.group_label=ga;
+        }
+
+        const { error } = await sb.from("matches").update(patch).eq("id",mid);
+        if(error){ note("#sc-msg","Gagal simpan: "+error.message,1); return; }
+        Object.assign(m,patch);
+        note("#sc-msg","Pasukan disimpan ✓");
+        renderSchedTable();   // segarkan KUMP + slot sebelah
       });
     });
 
@@ -650,6 +671,21 @@ $("#btnRenumber").onclick = async () => {
   if(!confirm(`Tetapkan BIL 1 hingga ${list.length} ikut susunan sekarang?`)) return;
   for(let i=0;i<list.length;i++) await sb.from("matches").update({ match_no:i+1 }).eq("id",list[i].id);
   note("#sc-msg","BIL dinomborkan semula ✓"); load();
+};
+
+// Betulkan KUMP semua perlawanan kumpulan ikut pasukan sebenar
+$("#btnSyncKump").onclick = async () => {
+  const gm=matches.filter(m=>m.round==='group');
+  if(!gm.length){ note("#sc-msg","Tiada perlawanan kumpulan.",1); return; }
+  let fixed=0, mismatch=0;
+  for(const m of gm){
+    const ga=teams[m.team_a_id]?.group_label, gb=teams[m.team_b_id]?.group_label;
+    if(ga&&ga===gb){
+      if(m.group_label!==ga){ await sb.from("matches").update({group_label:ga}).eq("id",m.id); fixed++; }
+    } else if(m.team_a_id&&m.team_b_id){ mismatch++; }
+  }
+  note("#sc-msg", `${fixed} dibetulkan${mismatch?` · ${mismatch} silang kumpulan (⚠)`:''} ✓`, mismatch?1:0);
+  load();
 };
 
 boot();
