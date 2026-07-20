@@ -642,11 +642,13 @@ function bmCard(m,isFinal=false){
 const ZONE_POINTS = {1:25,2:18,3:13,5:5,6:4,7:3,8:2,9:1};
 
 async function loadZoneData(){
-  const [{data:tm},{data:mt}] = await Promise.all([
+  const [{data:tm,error:et},{data:mt,error:em}] = await Promise.all([
     sb.from("teams").select("id,name,category_id,group_label,manual_rank"),
     sb.from("matches").select("category_id,round,team_a_id,team_b_id,score_a,score_b,done"),
   ]);
-  return { teams: tm||[], matches: mt||[] };
+  if(et) console.error("loadZoneData teams:", et.message);
+  if(em) console.error("loadZoneData matches:", em.message);
+  return { teams: tm||[], matches: mt||[], error: et||em||null };
 }
 
 // Mata & beza jaringan setiap pasukan (dalam kumpulan sama) — untuk pecah seri
@@ -693,18 +695,14 @@ function categoryPlacements(catId, allTeams, allMatches){
     autoRank.set(l,2); placed.add(l);
     let nextRank=3;
 
-    // Ketiga Bersama — kedua-dua pihak kalah SF, tiada mata berasingan utk ke-4
+    // Ketiga & Keempat Bersama — kedua-dua pihak kalah SF, tiada mata berasingan
     const sfLosers=byRound('sf').filter(m=>m.done&&m.team_a_id&&m.team_b_id)
       .map(m=>m.score_a>m.score_b?m.team_b_id:m.team_a_id).filter(id=>!placed.has(id));
     sfLosers.forEach(id=>{ autoRank.set(id,nextRank); placed.add(id); });
     if(sfLosers.length) nextRank+=sfLosers.length;
 
-    // Pasukan kalah QF — disusun ikut mata/beza jaringan kumpulan
-    byRound('qf').filter(m=>m.done&&m.team_a_id&&m.team_b_id)
-      .map(m=>m.score_a>m.score_b?m.team_b_id:m.team_a_id).filter(id=>!placed.has(id))
-      .sort(gcmp).forEach(id=>{ autoRank.set(id,nextRank++); placed.add(id); });
-
-    // Baki pasukan yang tak sampai peringkat suku/separuh akhir
+    // Ke-5 dan seterusnya: SEMUA pasukan yang belum layak separuh akhir
+    // (kalah QF atau tak sampai QF), disusun sekali ikut jadual mata — MATA dahulu, then DFST/JRGN
     catTeams.map(t=>t.id).filter(id=>!placed.has(id)).sort(gcmp)
       .forEach(id=>{ autoRank.set(id,nextRank++); placed.add(id); });
   } else if(catMatches.some(m=>m.round==='group'&&m.done)){
@@ -719,7 +717,8 @@ function categoryPlacements(catId, allTeams, allMatches){
 }
 
 async function renderZon(){
-  const {teams:allTeams, matches:allMatches} = await loadZoneData();
+  const {teams:allTeams, matches:allMatches, error} = await loadZoneData();
+  if(error){ $("#v-zon").innerHTML=`<div class="empty">Ralat memuatkan data zon: ${error.message}</div>`; return; }
   const teamById=Object.fromEntries(allTeams.map(t=>[t.id,t]));
   const catIds=[...new Set(allTeams.map(t=>t.category_id))];
 

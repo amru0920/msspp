@@ -368,7 +368,11 @@ function renderTeams(){
     const tid=+r.dataset.tid;
     r.querySelector("[data-grp]").onchange = async e => { await sb.from("teams").update({group_label:e.target.value||null}).eq("id",tid); load(); };
     r.querySelector("[data-seed]").onchange = async e => { await sb.from("teams").update({seed_no:e.target.value?+e.target.value:null}).eq("id",tid); load(); };
-    r.querySelector("[data-rank]").onchange = async e => { await sb.from("teams").update({manual_rank:e.target.value?+e.target.value:null}).eq("id",tid); load(); };
+    r.querySelector("[data-rank]").onchange = async e => {
+      const { error } = await sb.from("teams").update({manual_rank:e.target.value?+e.target.value:null}).eq("id",tid);
+      if(error){ alert("Gagal kemas kini kedudukan: "+error.message); }
+      load();
+    };
     r.querySelector("[data-delteam]").onclick = async () => {
       if(!confirm("Padam pasukan ini?")) return;
       await sb.from("matches").update({team_a_id:null}).eq("team_a_id",tid);
