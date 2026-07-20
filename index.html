@@ -643,7 +643,7 @@ const ZONE_POINTS = {1:25,2:18,3:13,5:5,6:4,7:3,8:2,9:1};
 
 async function loadZoneData(){
   const [{data:tm},{data:mt}] = await Promise.all([
-    sb.from("teams").select("id,name,category_id,group_label,zone"),
+    sb.from("teams").select("id,name,category_id,group_label,zone,manual_rank"),
     sb.from("matches").select("category_id,round,team_a_id,team_b_id,score_a,score_b,done"),
   ]);
   return { teams: tm||[], matches: mt||[] };
@@ -673,7 +673,9 @@ const groupCmpBy = stats => (idA,idB) => {
   return b.gf-a.gf;
 };
 
-// Kedudukan akhir (1..9) setiap pasukan dalam SATU kategori
+// Kedudukan akhir (1..9) setiap pasukan dalam SATU kategori.
+// Pasukan dengan manual_rank (ditetapkan admin) sentiasa diutamakan;
+// selebihnya dikira automatik dari bracket + jadual mata.
 function categoryPlacements(catId, allTeams, allMatches){
   const catTeams=allTeams.filter(t=>t.category_id===catId);
   const catMatches=allMatches.filter(m=>m.category_id===catId);
@@ -682,34 +684,38 @@ function categoryPlacements(catId, allTeams, allMatches){
   const gcmp=groupCmpBy(catGroupStats(catTeams, catMatches));
   const byRound=r=>catMatches.filter(m=>m.round===r);
   const final=byRound('final')[0];
-  const placements=[], placed=new Set();
+  const autoRank=new Map(), placed=new Set();
 
   if(final && final.done && final.team_a_id && final.team_b_id){
     const w=final.score_a>final.score_b?final.team_a_id:final.team_b_id;
     const l=final.score_a>final.score_b?final.team_b_id:final.team_a_id;
-    placements.push({team_id:w,rank:1}); placed.add(w);
-    placements.push({team_id:l,rank:2}); placed.add(l);
+    autoRank.set(w,1); placed.add(w);
+    autoRank.set(l,2); placed.add(l);
     let nextRank=3;
 
     // Ketiga Bersama — kedua-dua pihak kalah SF, tiada mata berasingan utk ke-4
     const sfLosers=byRound('sf').filter(m=>m.done&&m.team_a_id&&m.team_b_id)
       .map(m=>m.score_a>m.score_b?m.team_b_id:m.team_a_id).filter(id=>!placed.has(id));
-    sfLosers.forEach(id=>{ placements.push({team_id:id,rank:nextRank}); placed.add(id); });
+    sfLosers.forEach(id=>{ autoRank.set(id,nextRank); placed.add(id); });
     if(sfLosers.length) nextRank+=sfLosers.length;
 
     // Pasukan kalah QF — disusun ikut mata/beza jaringan kumpulan
     byRound('qf').filter(m=>m.done&&m.team_a_id&&m.team_b_id)
       .map(m=>m.score_a>m.score_b?m.team_b_id:m.team_a_id).filter(id=>!placed.has(id))
-      .sort(gcmp).forEach(id=>{ placements.push({team_id:id,rank:nextRank++}); placed.add(id); });
+      .sort(gcmp).forEach(id=>{ autoRank.set(id,nextRank++); placed.add(id); });
 
     // Baki pasukan yang tak sampai peringkat suku/separuh akhir
     catTeams.map(t=>t.id).filter(id=>!placed.has(id)).sort(gcmp)
-      .forEach(id=>{ placements.push({team_id:id,rank:nextRank++}); placed.add(id); });
+      .forEach(id=>{ autoRank.set(id,nextRank++); placed.add(id); });
   } else if(catMatches.some(m=>m.round==='group'&&m.done)){
     // Kategori liga penuh (tiada bracket) — kedudukan terus dari jadual mata
-    catTeams.map(t=>t.id).sort(gcmp).forEach((id,i)=>placements.push({team_id:id,rank:i+1}));
+    catTeams.map(t=>t.id).sort(gcmp).forEach((id,i)=>autoRank.set(id,i+1));
   }
-  return placements;
+
+  // manual_rank (admin) menggantikan kiraan automatik bila ditetapkan
+  return catTeams
+    .map(t=>({ team_id:t.id, rank: t.manual_rank ?? autoRank.get(t.id) }))
+    .filter(p=>p.rank!=null);
 }
 
 async function renderZon(){

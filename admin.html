@@ -58,6 +58,7 @@
   .team-row select{width:82px;margin:0;padding:7px 8px;font-size:13px}
   .team-row select[data-seed]{width:64px}
   .team-row input[data-zone]{width:110px;margin:0;padding:7px 8px;font-size:13px}
+  .team-row select[data-rank]{width:120px;margin:0;padding:7px 8px;font-size:13px}
   .mini{padding:8px 11px;font-size:12px}
   .hidden{display:none}
 
@@ -229,6 +230,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 const $ = s => document.querySelector(s);
 const ROUND = { group:"Kumpulan", qf:"Suku Akhir", sf:"Separuh Akhir", third:"Tempat Ke-3", final:"Akhir" };
 const GROUPS = ["A","B","C","D"];
+const RANK_OPTIONS = [[1,"Johan"],[2,"Naib Johan"],[3,"Ketiga Bersama"],[5,"Ke-5"],[6,"Ke-6"],[7,"Ke-7"],[8,"Ke-8"],[9,"Ke-9"]];
 
 let cats=[], cat=null, teamList=[], teams={}, matches=[];
 
@@ -367,6 +369,10 @@ function renderTeams(){
         ${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${t.seed_no===n?'selected':''}>${t.group_label||''}${n}</option>`).join("")}
         <option value="" ${!t.seed_no?'selected':''}>—</option>
       </select>
+      <select data-rank title="Kedudukan akhir (manual — ganti kiraan automatik)">
+        <option value="" ${!t.manual_rank?'selected':''}>Auto</option>
+        ${RANK_OPTIONS.map(([v,label])=>`<option value="${v}" ${t.manual_rank===v?'selected':''}>${label}</option>`).join("")}
+      </select>
       <button class="del mini" data-delteam>✕</button>
     </div>`).join("") || `<div class="sub">Belum ada pasukan — tambah di atas.</div>`;
   $("#teamList").querySelectorAll(".team-row").forEach(r=>{
@@ -374,6 +380,7 @@ function renderTeams(){
     r.querySelector("[data-zone]").onchange = async e => { await sb.from("teams").update({zone:e.target.value.trim()||null}).eq("id",tid); load(); };
     r.querySelector("[data-grp]").onchange = async e => { await sb.from("teams").update({group_label:e.target.value||null}).eq("id",tid); load(); };
     r.querySelector("[data-seed]").onchange = async e => { await sb.from("teams").update({seed_no:e.target.value?+e.target.value:null}).eq("id",tid); load(); };
+    r.querySelector("[data-rank]").onchange = async e => { await sb.from("teams").update({manual_rank:e.target.value?+e.target.value:null}).eq("id",tid); load(); };
     r.querySelector("[data-delteam]").onclick = async () => {
       if(!confirm("Padam pasukan ini?")) return;
       await sb.from("matches").update({team_a_id:null}).eq("team_a_id",tid);
