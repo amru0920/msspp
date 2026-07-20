@@ -634,104 +634,32 @@ function bmCard(m,isFinal=false){
 
 // ════════════════════════════════════════
 // 5. KEDUDUKAN MATA MENGIKUT ZON
-//    Jumlah mata setiap zon merentasi SEMUA kategori.
-//    Mata ikut kedudukan akhir pasukan dalam kategori:
+//    Jumlah mata setiap zon (nama pasukan) merentasi SEMUA kategori.
+//    Kedudukan (Johan/Naib Johan/Ketiga Bersama/Ke-5...Ke-9) ditetapkan
+//    SECARA MANUAL oleh admin (admin.html) — tiada kiraan automatik.
 //    Johan=25, Naib Johan=18, Ketiga Bersama=13,
 //    Ke-5=5, Ke-6=4, Ke-7=3, Ke-8=2, Ke-9=1
 // ════════════════════════════════════════
 const ZONE_POINTS = {1:25,2:18,3:13,5:5,6:4,7:3,8:2,9:1};
 
 async function loadZoneData(){
-  const [{data:tm,error:et},{data:mt,error:em}] = await Promise.all([
-    sb.from("teams").select("id,name,category_id,group_label,manual_rank"),
-    sb.from("matches").select("category_id,round,team_a_id,team_b_id,score_a,score_b,done"),
-  ]);
-  if(et) console.error("loadZoneData teams:", et.message);
-  if(em) console.error("loadZoneData matches:", em.message);
-  return { teams: tm||[], matches: mt||[], error: et||em||null };
-}
-
-// Mata & beza jaringan setiap pasukan (dalam kumpulan sama) — untuk pecah seri
-function catGroupStats(catTeams, catMatches){
-  const stats={}; catTeams.forEach(t=>{stats[t.id]={pts:0,gf:0,ga:0}});
-  const byId=Object.fromEntries(catTeams.map(t=>[t.id,t]));
-  catMatches.filter(m=>m.round==='group'&&m.done&&m.team_a_id&&m.team_b_id).forEach(m=>{
-    const {team_a_id:a,team_b_id:b,score_a:sa,score_b:sb_}=m;
-    if(!stats[a]||!stats[b]) return;
-    const ga=byId[a]?.group_label, gb=byId[b]?.group_label;
-    if(!ga||ga!==gb) return;
-    stats[a].gf+=sa; stats[a].ga+=sb_; stats[b].gf+=sb_; stats[b].ga+=sa;
-    if(sa>sb_) stats[a].pts+=3;
-    else if(sa===sb_){ stats[a].pts+=1; stats[b].pts+=1; }
-    else stats[b].pts+=3;
-  });
-  return stats;
-}
-const groupCmpBy = stats => (idA,idB) => {
-  const a=stats[idA]||{pts:0,gf:0,ga:0}, b=stats[idB]||{pts:0,gf:0,ga:0};
-  if(b.pts!==a.pts) return b.pts-a.pts;
-  const gda=a.gf-a.ga, gdb=b.gf-b.ga;
-  if(gdb!==gda) return gdb-gda;
-  return b.gf-a.gf;
-};
-
-// Kedudukan akhir (1..9) setiap pasukan dalam SATU kategori.
-// Pasukan dengan manual_rank (ditetapkan admin) sentiasa diutamakan;
-// selebihnya dikira automatik dari bracket + jadual mata.
-function categoryPlacements(catId, allTeams, allMatches){
-  const catTeams=allTeams.filter(t=>t.category_id===catId);
-  const catMatches=allMatches.filter(m=>m.category_id===catId);
-  if(!catTeams.length) return [];
-
-  const gcmp=groupCmpBy(catGroupStats(catTeams, catMatches));
-  const byRound=r=>catMatches.filter(m=>m.round===r);
-  const final=byRound('final')[0];
-  const autoRank=new Map(), placed=new Set();
-
-  if(final && final.done && final.team_a_id && final.team_b_id){
-    const w=final.score_a>final.score_b?final.team_a_id:final.team_b_id;
-    const l=final.score_a>final.score_b?final.team_b_id:final.team_a_id;
-    autoRank.set(w,1); placed.add(w);
-    autoRank.set(l,2); placed.add(l);
-    let nextRank=3;
-
-    // Ketiga & Keempat Bersama — kedua-dua pihak kalah SF, tiada mata berasingan
-    const sfLosers=byRound('sf').filter(m=>m.done&&m.team_a_id&&m.team_b_id)
-      .map(m=>m.score_a>m.score_b?m.team_b_id:m.team_a_id).filter(id=>!placed.has(id));
-    sfLosers.forEach(id=>{ autoRank.set(id,nextRank); placed.add(id); });
-    if(sfLosers.length) nextRank+=sfLosers.length;
-
-    // Ke-5 dan seterusnya: SEMUA pasukan yang belum layak separuh akhir
-    // (kalah QF atau tak sampai QF), disusun sekali ikut jadual mata — MATA dahulu, then DFST/JRGN
-    catTeams.map(t=>t.id).filter(id=>!placed.has(id)).sort(gcmp)
-      .forEach(id=>{ autoRank.set(id,nextRank++); placed.add(id); });
-  } else if(catMatches.some(m=>m.round==='group'&&m.done)){
-    // Kategori liga penuh (tiada bracket) — kedudukan terus dari jadual mata
-    catTeams.map(t=>t.id).sort(gcmp).forEach((id,i)=>autoRank.set(id,i+1));
-  }
-
-  // manual_rank (admin) menggantikan kiraan automatik bila ditetapkan
-  return catTeams
-    .map(t=>({ team_id:t.id, rank: t.manual_rank ?? autoRank.get(t.id) }))
-    .filter(p=>p.rank!=null);
+  const { data, error } = await sb.from("teams").select("name,manual_rank");
+  if(error) console.error("loadZoneData teams:", error.message);
+  return { teams: data||[], error };
 }
 
 async function renderZon(){
-  const {teams:allTeams, matches:allMatches, error} = await loadZoneData();
+  const {teams:allTeams, error} = await loadZoneData();
   if(error){ $("#v-zon").innerHTML=`<div class="empty">Ralat memuatkan data zon: ${error.message}</div>`; return; }
-  const teamById=Object.fromEntries(allTeams.map(t=>[t.id,t]));
-  const catIds=[...new Set(allTeams.map(t=>t.category_id))];
 
   const zoneTotals={};
-  catIds.forEach(cid=>{
-    categoryPlacements(cid, allTeams, allMatches).forEach(({team_id,rank})=>{
-      const z=teamById[team_id]?.name; if(!z) return;
-      zoneTotals[z]=(zoneTotals[z]||0)+(ZONE_POINTS[rank]||0);
-    });
+  allTeams.forEach(t=>{
+    if(!t.manual_rank || !t.name) return;
+    zoneTotals[t.name]=(zoneTotals[t.name]||0)+(ZONE_POINTS[t.manual_rank]||0);
   });
 
   const rows=Object.entries(zoneTotals).sort((a,b)=>b[1]-a[1]);
-  if(!rows.length){ $("#v-zon").innerHTML=`<div class="empty">Belum ada keputusan untuk dikira.</div>`; return; }
+  if(!rows.length){ $("#v-zon").innerHTML=`<div class="empty">Belum ada kedudukan ditetapkan. Tetapkan kedudukan setiap pasukan di admin.html.</div>`; return; }
 
   $("#v-zon").innerHTML=`<div class="zon-wrap"><table class="zon">
     <thead><tr><th>KEDUDUKAN</th><th style="text-align:left">ZON</th><th>JUMLAH MATA</th></tr></thead>
@@ -739,7 +667,7 @@ async function renderZon(){
       <td class="zn-rank">${i+1}</td><td class="zn-name">${z}</td><td class="zn-pts">${pts}</td>
     </tr>`).join("")}</tbody>
   </table></div>
-  <div class="sched-note">*Mata dikira automatik ikut kedudukan akhir setiap pasukan (Johan=25, Naib Johan=18, Ketiga Bersama=13, Ke-5=5 ... Ke-9=1) merentasi semua kategori.</div>`;
+  <div class="sched-note">*Mata dikira ikut kedudukan yang ditetapkan admin bagi setiap pasukan (Johan=25, Naib Johan=18, Ketiga Bersama=13, Ke-5=5 ... Ke-9=1) merentasi semua kategori.</div>`;
 }
 
 boot();
