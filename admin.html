@@ -57,6 +57,7 @@
   .team-row .name{flex:1;font-weight:600;font-size:14px}
   .team-row select{width:82px;margin:0;padding:7px 8px;font-size:13px}
   .team-row select[data-seed]{width:64px}
+  .team-row input[data-zone]{width:110px;margin:0;padding:7px 8px;font-size:13px}
   .mini{padding:8px 11px;font-size:12px}
   .hidden{display:none}
 
@@ -141,10 +142,12 @@
       </div>
       <div class="card form">
         <h3>Tambah Pasukan</h3>
+        <input id="nt-name" placeholder="Nama pasukan / daerah">
         <div class="grid2">
-          <input id="nt-name" placeholder="Nama pasukan / daerah">
+          <input id="nt-zone" list="zoneList" placeholder="Zon (cth: Zon Utara)">
           <select id="nt-group"></select>
         </div>
+        <datalist id="zoneList"></datalist>
         <button class="btn" id="btnAddTeam">Tambah Pasukan</button>
         <div class="msg" id="nt-msg"></div>
       </div>
@@ -245,6 +248,12 @@ async function boot(){
   const { data } = await sb.from("categories").select("*").order("sort_order");
   cats=data||[]; if(cats.length && !cat) cat=cats[0].id;
   tabs(); if(cat) load();
+  loadZoneList();
+}
+async function loadZoneList(){
+  const { data } = await sb.from("teams").select("zone").not("zone","is",null);
+  const zones=[...new Set((data||[]).map(r=>r.zone).filter(Boolean))].sort();
+  $("#zoneList").innerHTML = zones.map(z=>`<option value="${z}">`).join("");
 }
 function tabs(){
   const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD tempatan
@@ -342,14 +351,16 @@ $("#btnClearGroup").onclick = async () => {
 $("#btnAddTeam").onclick = async () => {
   const name=$("#nt-name").value.trim();
   if(!name){ note("#nt-msg","Isi nama pasukan.",1); return; }
-  const { error } = await sb.from("teams").insert({ category_id:cat, name, group_label:$("#nt-group").value });
+  const zone=$("#nt-zone").value.trim()||null;
+  const { error } = await sb.from("teams").insert({ category_id:cat, name, zone, group_label:$("#nt-group").value });
   if(error){ note("#nt-msg","Gagal.",1); return; }
-  $("#nt-name").value=""; note("#nt-msg","Ditambah ✓"); load();
+  $("#nt-name").value=""; $("#nt-zone").value=""; note("#nt-msg","Ditambah ✓"); load();
 };
 function renderTeams(){
   $("#teamList").innerHTML = teamList.map(t=>`
     <div class="team-row" data-tid="${t.id}">
       <span class="name">${t.name}</span>
+      <input data-zone list="zoneList" placeholder="Zon" value="${t.zone||''}">
       <select data-grp>${GROUPS.map(g=>`<option value="${g}" ${t.group_label===g?'selected':''}>Kump ${g}</option>`).join("")}
         <option value="" ${!t.group_label?'selected':''}>Tiada</option></select>
       <select data-seed title="Nombor dalam kumpulan">
@@ -360,6 +371,7 @@ function renderTeams(){
     </div>`).join("") || `<div class="sub">Belum ada pasukan — tambah di atas.</div>`;
   $("#teamList").querySelectorAll(".team-row").forEach(r=>{
     const tid=+r.dataset.tid;
+    r.querySelector("[data-zone]").onchange = async e => { await sb.from("teams").update({zone:e.target.value.trim()||null}).eq("id",tid); load(); };
     r.querySelector("[data-grp]").onchange = async e => { await sb.from("teams").update({group_label:e.target.value||null}).eq("id",tid); load(); };
     r.querySelector("[data-seed]").onchange = async e => { await sb.from("teams").update({seed_no:e.target.value?+e.target.value:null}).eq("id",tid); load(); };
     r.querySelector("[data-delteam]").onclick = async () => {
